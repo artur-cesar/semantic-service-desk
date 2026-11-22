@@ -16,6 +16,8 @@ src/
 │   └── dependencies.ts
 ├── controller/
 │   └── <resource>.controller.ts
+├── domain/
+│   └── <resource>.domain.ts
 ├── repository/
 │   └── <resource>.repository.ts
 ├── responses/
@@ -62,6 +64,122 @@ infrastructure
 The resulting controller is passed to its Fastify route plugin through plugin
 options. Do not use a dependency-injection container, decorators, reflection,
 providers, or Fastify decorators as a service locator.
+
+## Persistence and domain models
+
+Prisma models describe database persistence. They are not application domain
+models and must remain restricted to the database and repository boundary.
+
+The application defines its own analogous domains under `src/domain`:
+
+```text
+Prisma Actor model  -> persistence representation
+Actor domain        -> application rules and behavior
+ActorResponse       -> public HTTP representation
+```
+
+These representations may initially have similar properties, but they serve
+different purposes and are allowed to evolve independently. Domain models must
+not import Prisma types, the generated Prisma Client, Fastify types, or HTTP
+response types.
+
+Each domain owns its required properties, invariants, and construction rules
+through a static `create` method:
+
+```ts
+const actor = Actor.create({
+  active,
+  capabilities,
+  createdAt,
+  id,
+  name,
+  type,
+  updatedAt,
+})
+```
+
+There is no separate `restore` method and no generic `AggregateRoot` base class.
+The same `create` method constructs a valid domain from properties supplied by
+an application use case or by a repository. Because it also reconstructs
+persisted state, `create` must not automatically emit a creation event.
+
+## Persistence-to-domain mapping
+
+A repository is responsible for adapting Prisma records to the construction
+contract defined by a domain:
+
+```text
+Prisma payload
+  -> repository.toDomain
+    -> related domains are created
+      -> parent domain is created
+        -> complete domain is returned
+```
+
+For example, an actor repository first creates its capability domains and then
+creates the actor:
+
+```ts
+function toDomain(record: ActorRecord): Actor {
+  const capabilities = record.capabilities.map(({ capability }) =>
+    Capability.create({
+      code: capability.code,
+      id: capability.id,
+      name: capability.name,
+    }),
+  )
+
+  return Actor.create({
+    active: record.active,
+    capabilities,
+    createdAt: record.createdAt,
+    id: record.id,
+    name: record.name,
+    type: record.type,
+    updatedAt: record.updatedAt,
+  })
+}
+```
+
+Keep `toDomain` private in the repository while it is used only there. Extract
+it to a dedicated mapper only after concrete reuse appears.
+
+The domain dictates what is required to construct a valid instance. The
+repository must select and transform enough persistence data to satisfy that
+contract. The domain must not adapt itself to an incomplete Prisma query.
+
+## Complete domains and read models
+
+A repository method that promises a domain must always return a complete domain
+according to that domain's property contract.
+
+An actor with no capabilities is complete and uses an empty collection:
+
+```ts
+Actor.create({
+  capabilities: [],
+  // Other required properties.
+})
+```
+
+Do not use `undefined` to mean that a relationship was not loaded. That creates
+two ambiguous states: a known empty relationship and an unknown relationship.
+
+When an endpoint needs only a subset of data, use an explicit read model rather
+than constructing a partial domain:
+
+```text
+ActorRepository.findById()       -> Actor
+ActorQueryRepository.findMany()  -> ActorSummary[]
+```
+
+The first operation reconstructs a complete domain. The second may project
+directly from Prisma because its result is a declared read model without domain
+behavior.
+
+Persistence join models do not automatically become domain objects. A join is
+represented as its own domain concept only when the relationship carries domain
+meaning, state, or behavior, such as grant origin, validity period, or status.
 
 ## Routes
 
@@ -145,6 +263,7 @@ A repository:
 - is created by a `create<Resource>Repository` factory;
 - receives the database client explicitly;
 - exposes operations required by application use cases;
+- converts persistence records into complete project-owned domains;
 - does not decide HTTP status codes or business workflows.
 
 Do not introduce a generic base repository. Repository contracts should reflect
