@@ -1,7 +1,8 @@
 import { type Static, Type } from '@sinclair/typebox'
 
-export const healthResponseSchema = Type.Object(
+export const healthyResponseSchema = Type.Object(
   {
+    database: Type.Literal('reachable'),
     status: Type.Literal('ok'),
   },
   {
@@ -10,9 +11,26 @@ export const healthResponseSchema = Type.Object(
   },
 )
 
+export const unhealthyResponseSchema = Type.Object(
+  {
+    database: Type.Literal('unreachable'),
+    status: Type.Literal('error'),
+  },
+  {
+    $id: 'UnhealthyResponse',
+    additionalProperties: false,
+  },
+)
+
+export const healthResponseSchema = Type.Union([
+  healthyResponseSchema,
+  unhealthyResponseSchema,
+])
+
 export const healthRouteSchema = {
   response: {
-    200: healthResponseSchema,
+    200: healthyResponseSchema,
+    503: unhealthyResponseSchema,
   },
 } as const
 

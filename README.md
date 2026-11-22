@@ -12,6 +12,8 @@ Educational API for exploring ontology-driven agentic systems.
 ```bash
 nvm use
 npm install
+npm run db:up
+npm run db:generate
 npm run dev
 ```
 
@@ -27,8 +29,29 @@ Response:
 
 ```json
 {
+  "database": "reachable",
   "status": "ok"
 }
+```
+
+## Database
+
+PostgreSQL runs in Docker while the API runs locally:
+
+```bash
+npm run db:up
+npm run db:logs
+npm run db:down
+```
+
+Copy `.env.example` to `.env` before running the application in a fresh clone.
+
+Prisma commands:
+
+```bash
+npm run db:generate
+npm run db:migrate
+npm run db:studio
 ```
 
 ## Checks

@@ -39,6 +39,8 @@ Before adding or changing application features, read
 - A route must import its schema from the resource response file and delegate handling to its controller.
 - Register controllers and their dependencies in `src/bootstrap/dependencies.ts`.
 - Register route plugins in `src/app.ts`.
+- Never edit files under `src/generated/prisma`; regenerate them with `npm run db:generate`.
+- Commit Prisma migrations, but do not commit the generated Prisma Client.
 - Add only the files required by the resource. Do not create a service or repository for an endpoint that has no application or persistence behavior.
 
 ## Change checklist

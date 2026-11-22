@@ -8,6 +8,12 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "db:down": "docker compose down",
+    "db:generate": "prisma generate",
+    "db:logs": "docker compose logs --follow database",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:up": "docker compose up --detach --wait database",
     "dev": "tsx watch src/server.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -18,18 +24,29 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
     "@sinclair/typebox": "0.34.52",
-    "fastify": "5.12.8"
+    "dotenv": "18.0.10",
+    "fastify": "5.12.8",
+    "pg": "8.23.1"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@types/node": "26.6.6",
+    "@types/pg": "8.23.1",
     "eslint": "10.15.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-perfectionist": "5.14.0",
     "prettier": "3.10.1",
+    "prisma": "7.10.1",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
     "typescript-eslint": "8.73.0"
+  },
+  "overrides": {
+    "content-disposition": "1.0.0",
+    "cookie": "1.0.2",
+    "effect": "3.22.5"
   }
 }
