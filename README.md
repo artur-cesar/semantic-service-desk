@@ -64,5 +64,8 @@ npm test
 npm run build
 ```
 
+The pre-push Git hook runs lint and tests. GitHub Actions also checks formatting,
+types, tests, and the production build on every push and pull request.
+
 See [`docs/architecture.md`](docs/architecture.md) for project structure and
 development conventions.
