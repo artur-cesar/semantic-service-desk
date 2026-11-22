@@ -39,6 +39,15 @@ Before adding or changing application features, read
 - Use an explicit read model for partial or presentation-oriented queries instead of returning a partially loaded domain.
 - A persistence join model becomes a domain concept only when the relationship has domain meaning, state, or behavior.
 
+## Database naming
+
+- Keep Prisma model names in `PascalCase` and Prisma field names in `camelCase`.
+- Map every PostgreSQL table to a plural `snake_case` name with `@@map`.
+- Map every multiword PostgreSQL column to `snake_case` with `@map`.
+- Map PostgreSQL enum type names to singular `snake_case` with `@@map`; keep enum values in `UPPER_SNAKE_CASE`.
+- Let application code use the Prisma model and field names. Do not leak physical database names into TypeScript code.
+- Apply this convention consistently to indexes, constraints, foreign keys, and all future migrations.
+
 ## Feature structure
 
 - Organize application files by technical responsibility under `src/`.

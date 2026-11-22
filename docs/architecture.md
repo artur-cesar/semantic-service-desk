@@ -70,6 +70,30 @@ providers, or Fastify decorators as a service locator.
 Prisma models describe database persistence. They are not application domain
 models and must remain restricted to the database and repository boundary.
 
+### Database naming convention
+
+The Prisma schema separates application-facing names from physical PostgreSQL
+names. Prisma models use `PascalCase`, and their fields use `camelCase`.
+PostgreSQL tables use plural `snake_case`, columns use `snake_case`, and enum
+types use singular `snake_case`. Enum values remain in `UPPER_SNAKE_CASE`.
+
+Declare this mapping explicitly with `@@map` for models and enum types and
+`@map` for multiword fields:
+
+```prisma
+model ActorCapability {
+  actorId      String   @map("actor_id") @db.Uuid
+  capabilityId String   @map("capability_id") @db.Uuid
+  grantedAt    DateTime @default(now()) @map("granted_at")
+
+  @@map("actor_capabilities")
+}
+```
+
+Application code continues to use `actorCapability.capabilityId`, while SQL
+and database tools expose `actor_capabilities.capability_id`. Apply this
+convention to every new persistence model and migration.
+
 The application defines its own analogous domains under `src/domain`:
 
 ```text
