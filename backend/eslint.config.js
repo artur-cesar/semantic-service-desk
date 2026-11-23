@@ -3,7 +3,7 @@ import prettier from 'eslint-config-prettier'
 import perfectionist from 'eslint-plugin-perfectionist'
 import tseslint from 'typescript-eslint'
 
-const typeScriptFiles = ['src/**/*.ts', 'test/**/*.ts']
+const typeScriptFiles = ['prisma/**/*.ts', 'src/**/*.ts', 'test/**/*.ts']
 
 export default tseslint.config(
   {
