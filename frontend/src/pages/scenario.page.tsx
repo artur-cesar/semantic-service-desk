@@ -66,6 +66,7 @@ export function ScenarioPage() {
         <SummaryCard
           icon="bi-building"
           label="Teams"
+          to="/teams"
           value={scenario.data.teams.length}
         />
         <SummaryCard

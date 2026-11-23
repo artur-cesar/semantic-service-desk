@@ -5,6 +5,8 @@ import { AppLayout } from './components/app-layout.js'
 import { ActorProfilePage } from './pages/actor-profile.page.js'
 import { ActorsPage } from './pages/actors.page.js'
 import { ScenarioPage } from './pages/scenario.page.js'
+import { TeamProfilePage } from './pages/team-profile.page.js'
+import { TeamsPage } from './pages/teams.page.js'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,6 +27,8 @@ export function App() {
             <Route element={<ScenarioPage />} path="/scenario" />
             <Route element={<ActorsPage />} path="/actors" />
             <Route element={<ActorProfilePage />} path="/actor/:id/profile" />
+            <Route element={<TeamsPage />} path="/teams" />
+            <Route element={<TeamProfilePage />} path="/team/:id/profile" />
             <Route element={<Navigate replace to="/scenario" />} path="*" />
           </Route>
         </Routes>
