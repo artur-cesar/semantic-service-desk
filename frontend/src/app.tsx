@@ -5,6 +5,8 @@ import { AppLayout } from './components/app-layout.js'
 import { ActorProfilePage } from './pages/actor-profile.page.js'
 import { ActorsPage } from './pages/actors.page.js'
 import { ScenarioPage } from './pages/scenario.page.js'
+import { SystemProfilePage } from './pages/system-profile.page.js'
+import { SystemsPage } from './pages/systems.page.js'
 import { TeamProfilePage } from './pages/team-profile.page.js'
 import { TeamsPage } from './pages/teams.page.js'
 
@@ -25,6 +27,8 @@ export function App() {
         <Routes>
           <Route element={<AppLayout />}>
             <Route element={<ScenarioPage />} path="/scenario" />
+            <Route element={<SystemsPage />} path="/systems" />
+            <Route element={<SystemProfilePage />} path="/system/:id/profile" />
             <Route element={<ActorsPage />} path="/actors" />
             <Route element={<ActorProfilePage />} path="/actor/:id/profile" />
             <Route element={<TeamsPage />} path="/teams" />

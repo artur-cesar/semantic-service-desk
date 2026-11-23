@@ -72,6 +72,7 @@ export function ScenarioPage() {
         <SummaryCard
           icon="bi-cpu"
           label="Systems"
+          to="/systems"
           value={scenario.data.systems.length}
         />
         <SummaryCard
