@@ -5,6 +5,7 @@ import { getScenario } from '../api/scenario.api.js'
 
 interface BadgeListProperties {
   emptyLabel: string
+  getHref?: (id: string) => string
   items: { id: string; name: string }[]
   variant?: 'primary' | 'success'
 }
@@ -78,6 +79,7 @@ export function ScenarioPage() {
         <SummaryCard
           icon="bi-stars"
           label="Capabilities"
+          to="/capabilities"
           value={scenario.data.capabilities.length}
         />
       </section>
@@ -109,24 +111,35 @@ export function ScenarioPage() {
               {scenario.data.actors.map((actor) => (
                 <tr key={actor.id}>
                   <td className="ps-4">
-                    <div className="fw-semibold">{actor.name}</div>
+                    <Link
+                      className="fw-semibold text-decoration-none"
+                      to={`/actor/${actor.id}/profile`}
+                    >
+                      {actor.name}
+                    </Link>
                     <div className="text-secondary small">
                       {actor.email ?? actor.type}
                     </div>
                   </td>
                   <td>{actor.department.name}</td>
                   <td>
-                    <BadgeList emptyLabel="No team" items={actor.teams} />
+                    <BadgeList
+                      emptyLabel="No team"
+                      getHref={(id) => `/team/${id}/profile`}
+                      items={actor.teams}
+                    />
                   </td>
                   <td>
                     <BadgeList
                       emptyLabel="No capability"
+                      getHref={(id) => `/capability/${id}/profile`}
                       items={actor.capabilities}
                     />
                   </td>
                   <td className="pe-4">
                     <BadgeList
                       emptyLabel="No authorization"
+                      getHref={(id) => `/system/${id}/profile`}
                       items={actor.authorizedSystems}
                       variant="success"
                     />
@@ -152,7 +165,12 @@ export function ScenarioPage() {
                 <div className="list-group-item px-4 py-3" key={system.id}>
                   <div className="d-flex justify-content-between gap-3">
                     <div>
-                      <div className="fw-semibold">{system.name}</div>
+                      <Link
+                        className="fw-semibold text-decoration-none"
+                        to={`/system/${system.id}/profile`}
+                      >
+                        {system.name}
+                      </Link>
                       <div className="small text-secondary">
                         {system.description}
                       </div>
@@ -204,6 +222,7 @@ export function ScenarioPage() {
 
 function BadgeList({
   emptyLabel,
+  getHref,
   items,
   variant = 'primary',
 }: BadgeListProperties) {
@@ -213,8 +232,17 @@ function BadgeList({
   return (
     <div className="d-flex flex-wrap gap-1">
       {items.map((item) => (
-        <span className={`badge text-bg-${variant}`} key={item.id}>
-          {item.name}
+        <span key={item.id}>
+          {getHref ? (
+            <Link
+              className={`badge text-bg-${variant} text-decoration-none`}
+              to={getHref(item.id)}
+            >
+              {item.name}
+            </Link>
+          ) : (
+            <span className={`badge text-bg-${variant}`}>{item.name}</span>
+          )}
         </span>
       ))}
     </div>

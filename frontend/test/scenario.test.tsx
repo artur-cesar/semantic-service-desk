@@ -53,4 +53,15 @@ test('renders actors returned by the scenario endpoint', async () => {
 
   expect(await screen.findByText('Carla')).toBeInTheDocument()
   expect(screen.getByText('ERP Access Management')).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Carla' })).toHaveAttribute(
+    'href',
+    '/actor/carla/profile',
+  )
+  expect(
+    screen.getByRole('link', { name: 'ERP Access Management' }),
+  ).toHaveAttribute('href', '/capability/capability/profile')
+  expect(screen.getByRole('link', { name: 'ERP' })).toHaveAttribute(
+    'href',
+    '/system/system/profile',
+  )
 })

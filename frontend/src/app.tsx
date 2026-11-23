@@ -4,6 +4,8 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { AppLayout } from './components/app-layout.js'
 import { ActorProfilePage } from './pages/actor-profile.page.js'
 import { ActorsPage } from './pages/actors.page.js'
+import { CapabilitiesPage } from './pages/capabilities.page.js'
+import { CapabilityProfilePage } from './pages/capability-profile.page.js'
 import { ScenarioPage } from './pages/scenario.page.js'
 import { SystemProfilePage } from './pages/system-profile.page.js'
 import { SystemsPage } from './pages/systems.page.js'
@@ -31,6 +33,11 @@ export function App() {
             <Route element={<SystemProfilePage />} path="/system/:id/profile" />
             <Route element={<ActorsPage />} path="/actors" />
             <Route element={<ActorProfilePage />} path="/actor/:id/profile" />
+            <Route element={<CapabilitiesPage />} path="/capabilities" />
+            <Route
+              element={<CapabilityProfilePage />}
+              path="/capability/:id/profile"
+            />
             <Route element={<TeamsPage />} path="/teams" />
             <Route element={<TeamProfilePage />} path="/team/:id/profile" />
             <Route element={<Navigate replace to="/scenario" />} path="*" />
