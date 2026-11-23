@@ -11,6 +11,7 @@ import { healthRoutes } from './routes/health.routes.js'
 import { scenarioRoutes } from './routes/scenario.routes.js'
 import { systemRoutes } from './routes/system.routes.js'
 import { teamRoutes } from './routes/team.routes.js'
+import { ticketRoutes } from './routes/ticket.routes.js'
 
 interface BuildAppOptions {
   dependencies?: Dependencies
@@ -46,6 +47,9 @@ export async function buildApp(options: BuildAppOptions = {}) {
   })
   await app.register(teamRoutes, {
     controller: dependencies.teamController,
+  })
+  await app.register(ticketRoutes, {
+    controller: dependencies.ticketController,
   })
 
   return app
