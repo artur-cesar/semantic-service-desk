@@ -3,15 +3,18 @@ import type { Environment } from '../config/environment.js'
 import { createActorController } from '../controller/actor.controller.js'
 import { createHealthController } from '../controller/health.controller.js'
 import { createScenarioController } from '../controller/scenario.controller.js'
+import { createSystemController } from '../controller/system.controller.js'
 import { createTeamController } from '../controller/team.controller.js'
 import { createPrismaClient } from '../database/prisma.js'
 import { createActorRepository } from '../repository/actor.repository.js'
 import { createHealthRepository } from '../repository/health.repository.js'
 import { createScenarioRepository } from '../repository/scenario.repository.js'
+import { createSystemRepository } from '../repository/system.repository.js'
 import { createTeamRepository } from '../repository/team.repository.js'
 import { createActorService } from '../service/actor.service.js'
 import { createHealthService } from '../service/health.service.js'
 import { createScenarioService } from '../service/scenario.service.js'
+import { createSystemService } from '../service/system.service.js'
 import { createTeamService } from '../service/team.service.js'
 
 export type Dependencies = ReturnType<typeof createDependencies>
@@ -26,6 +29,9 @@ export function createDependencies(environment: Environment) {
   const scenarioRepository = createScenarioRepository(prisma)
   const scenarioService = createScenarioService(scenarioRepository)
   const scenarioController = createScenarioController(scenarioService)
+  const systemRepository = createSystemRepository(prisma)
+  const systemService = createSystemService(systemRepository)
+  const systemController = createSystemController(systemService)
 
   //Teams
   const teamRepository = createTeamRepository(prisma)
@@ -46,6 +52,7 @@ export function createDependencies(environment: Environment) {
     dispose,
     healthController,
     scenarioController,
+    systemController,
     teamController,
   }
 }

@@ -2,22 +2,26 @@ import type { Dependencies } from '../../src/bootstrap/dependencies.js'
 import type { ActorRepository } from '../../src/repository/actor.repository.js'
 import type { HealthRepository } from '../../src/repository/health.repository.js'
 import type { ScenarioRepository } from '../../src/repository/scenario.repository.js'
+import type { SystemRepository } from '../../src/repository/system.repository.js'
 import type { TeamRepository } from '../../src/repository/team.repository.js'
 
 import { createActorController } from '../../src/controller/actor.controller.js'
 import { createHealthController } from '../../src/controller/health.controller.js'
 import { createScenarioController } from '../../src/controller/scenario.controller.js'
+import { createSystemController } from '../../src/controller/system.controller.js'
 import { createTeamController } from '../../src/controller/team.controller.js'
 import { Scenario } from '../../src/domain/scenario.domain.js'
 import { createActorService } from '../../src/service/actor.service.js'
 import { createHealthService } from '../../src/service/health.service.js'
 import { createScenarioService } from '../../src/service/scenario.service.js'
+import { createSystemService } from '../../src/service/system.service.js'
 import { createTeamService } from '../../src/service/team.service.js'
 
 interface TestDependenciesOptions {
   actorRepository?: ActorRepository
   healthRepository?: HealthRepository
   scenarioRepository?: ScenarioRepository
+  systemRepository?: SystemRepository
   teamRepository?: TeamRepository
 }
 
@@ -49,6 +53,11 @@ const defaultTeamRepository: TeamRepository = {
   list: () => Promise.resolve([]),
 }
 
+const defaultSystemRepository: SystemRepository = {
+  findById: () => Promise.resolve(null),
+  list: () => Promise.resolve([]),
+}
+
 export function createTestDependencies(
   options: TestDependenciesOptions = {},
 ): Dependencies {
@@ -64,12 +73,16 @@ export function createTestDependencies(
   const teamService = createTeamService(
     options.teamRepository ?? defaultTeamRepository,
   )
+  const systemService = createSystemService(
+    options.systemRepository ?? defaultSystemRepository,
+  )
 
   return {
     actorController: createActorController(actorService),
     dispose: () => Promise.resolve(),
     healthController: createHealthController(healthService),
     scenarioController: createScenarioController(scenarioService),
+    systemController: createSystemController(systemService),
     teamController: createTeamController(teamService),
   }
 }
