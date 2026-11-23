@@ -1,18 +1,18 @@
 # Dependencies
-node_modules/
+**/node_modules/
 
 # Build
-dist/
-src/generated/prisma/
+**/dist/
+**/src/generated/prisma/
 *.tsbuildinfo
 
 # Tests
 coverage/
 
 # Environment
-.env
-.env.*
-!.env.example
+**/.env
+**/.env.*
+!**/.env.example
 
 # Logs
 *.log
