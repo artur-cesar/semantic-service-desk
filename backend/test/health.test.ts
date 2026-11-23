@@ -4,20 +4,14 @@ import { test } from 'node:test'
 import type { HealthRepository } from '../src/repository/health.repository.js'
 
 import { buildApp } from '../src/app.js'
-import { createHealthController } from '../src/controller/health.controller.js'
-import { createHealthService } from '../src/service/health.service.js'
+import { createTestDependencies } from './support/test-dependencies.js'
 
 void test('GET /health reports that the API is healthy', async (context) => {
   const repository: HealthRepository = {
     checkDatabase: () => Promise.resolve(),
   }
-  const service = createHealthService(repository)
-  const healthController = createHealthController(service)
   const app = await buildApp({
-    dependencies: {
-      dispose: () => Promise.resolve(),
-      healthController,
-    },
+    dependencies: createTestDependencies({ healthRepository: repository }),
   })
 
   context.after(async () => {
@@ -40,13 +34,8 @@ void test('GET /health reports an unavailable database', async (context) => {
   const repository: HealthRepository = {
     checkDatabase: () => Promise.reject(new Error('Database unavailable')),
   }
-  const service = createHealthService(repository)
-  const healthController = createHealthController(service)
   const app = await buildApp({
-    dependencies: {
-      dispose: () => Promise.resolve(),
-      healthController,
-    },
+    dependencies: createTestDependencies({ healthRepository: repository }),
   })
 
   context.after(async () => {

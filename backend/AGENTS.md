@@ -36,7 +36,8 @@ Before adding or changing application features, read
 - Keep `toDomain` private inside the repository until concrete reuse justifies extracting a mapper.
 - Build related domain objects before passing them to the parent domain's `create` method.
 - A repository method that promises a domain must return a complete domain. Use empty collections for known empty relations; never use `undefined` to represent a relation that was not loaded.
-- Use an explicit read model for partial or presentation-oriented queries instead of returning a partially loaded domain.
+- Do not introduce read models, read-model directories, or query-specific type hierarchies without an explicit architectural decision. A presentation-oriented query does not by itself authorize bypassing project-owned domains.
+- Prefer one cohesive domain property contract over fragmented type hierarchies. Avoid chains based on `extends`, `Pick`, `Omit`, or multiple near-identical interfaces unless they solve a demonstrated reuse problem.
 - A persistence join model becomes a domain concept only when the relationship has domain meaning, state, or behavior.
 
 ## Database naming

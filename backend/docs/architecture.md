@@ -172,7 +172,7 @@ The domain dictates what is required to construct a valid instance. The
 repository must select and transform enough persistence data to satisfy that
 contract. The domain must not adapt itself to an incomplete Prisma query.
 
-## Complete domains and read models
+## Complete domains and query projections
 
 A repository method that promises a domain must always return a complete domain
 according to that domain's property contract.
@@ -189,17 +189,22 @@ Actor.create({
 Do not use `undefined` to mean that a relationship was not loaded. That creates
 two ambiguous states: a known empty relationship and an unknown relationship.
 
-When an endpoint needs only a subset of data, use an explicit read model rather
-than constructing a partial domain:
+Repositories return project-owned domains by default, including for aggregated
+query resources such as `Scenario`. A repository must construct the domain
+through its `create` method before returning it:
 
 ```text
-ActorRepository.findById()       -> Actor
-ActorQueryRepository.findMany()  -> ActorSummary[]
+Prisma records -> Scenario.create(...) -> Scenario
 ```
 
-The first operation reconstructs a complete domain. The second may project
-directly from Prisma because its result is a declared read model without domain
-behavior.
+Do not introduce a read model or a `read-model` directory merely because an
+endpoint is optimized for presentation. Read models are an architectural
+exception and require an explicit decision before implementation.
+
+Keep domain property contracts cohesive. Prefer one explicit properties type
+owned by the domain over chains of near-identical interfaces using `extends`,
+`Pick`, or `Omit`. Extract shared types only after concrete reuse demonstrates
+that the additional abstraction improves the model.
 
 Persistence join models do not automatically become domain objects. A join is
 represented as its own domain concept only when the relationship carries domain

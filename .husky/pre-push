@@ -1,2 +1,4 @@
 npm --prefix backend run lint
 npm --prefix backend test
+npm --prefix frontend run lint
+npm --prefix frontend test

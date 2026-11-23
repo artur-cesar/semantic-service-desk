@@ -19,6 +19,9 @@ npm run dev
 
 The API is available at `http://localhost:3000`.
 
+From the repository root, `make dev` starts this API together with PostgreSQL
+and the frontend at `http://localhost:5173`.
+
 ## Health check
 
 ```bash
@@ -32,6 +35,14 @@ Response:
   "database": "reachable",
   "status": "ok"
 }
+```
+
+## Scenario
+
+The frontend's initial screen consumes:
+
+```bash
+curl http://localhost:3000/scenario
 ```
 
 ## Database

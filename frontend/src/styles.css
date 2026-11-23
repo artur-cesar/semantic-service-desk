@@ -1,0 +1,74 @@
+:root {
+  color-scheme: light;
+  background: #f5f7fa;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+
+.page-icon,
+.summary-icon {
+  display: inline-grid;
+  place-items: center;
+  color: var(--bs-primary);
+  background: var(--bs-primary-bg-subtle);
+  border-radius: 0.75rem;
+}
+
+.actor-avatar {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 4rem;
+  height: 4rem;
+  place-items: center;
+  color: var(--bs-primary);
+  font-size: 1.75rem;
+  background: var(--bs-primary-bg-subtle);
+  border-radius: 50%;
+}
+
+.page-icon {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.25rem;
+}
+
+.summary-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 1.1rem;
+}
+
+.card {
+  border-radius: 0.85rem;
+}
+
+.clickable-card,
+.clickable-row {
+  cursor: pointer;
+}
+
+.clickable-card .card {
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.clickable-card:hover .card,
+.clickable-card:focus-visible .card {
+  transform: translateY(-2px);
+  box-shadow: var(--bs-box-shadow) !important;
+}
+
+.clickable-row:focus-visible {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: -2px;
+}
+
+.table > :not(caption) > * > * {
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+}
