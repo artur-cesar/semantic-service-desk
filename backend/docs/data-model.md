@@ -15,50 +15,63 @@ Prisma models and fields use `PascalCase` and `camelCase`. PostgreSQL tables
 and columns are explicitly mapped to plural `snake_case` table names and
 `snake_case` column names.
 
-## Entity relationship diagram
+## From a human report to an explainable decision
+
+The model exists to support a specific story. A requester describes a problem
+in natural language, an LLM proposes structured facts, and the application
+normalizes those facts against a controlled taxonomy. Ontology and policy
+rules then derive requirements and evaluate possible resolvers. A human can
+inspect the persisted result before accepting the recommendation.
+
+Example report:
+
+> I moved from Procurement to Finance and can no longer approve purchase
+> orders in the ERP.
+
+The LLM does not choose a resolver. It proposes facts such as the affected
+system, requested action, organizational context, and problem category:
+
+```mermaid
+flowchart LR
+    R[Human report] --> L[LLM extraction]
+    L --> S[Affected system: ERP]
+    L --> A[Requested action: approve purchase order]
+    L --> C[Problem category: access issue]
+    L --> D[Current and previous departments]
+```
+
+The application resolves those suggestions to known identifiers. Unknown or
+ambiguous values remain explicit instead of being invented. The resulting
+ticket becomes the stable input for ontology and policy evaluation:
+
+```mermaid
+flowchart LR
+    T[Normalized ticket] --> O[Ontology and policies]
+    O --> R[Required capabilities]
+    R --> E[Actor eligibility]
+    E --> K[Candidate ranking]
+    K --> P[Persisted explanation]
+    P --> H[Human review]
+```
+
+The following sections introduce the model one context at a time. The complete
+relationship diagram appears only at the end as a reference.
+
+## Identity and Organization
+
+This context answers who may participate and where they operate. Team
+membership, capability grants, and system authorizations are separate facts:
+belonging to a team does not automatically prove skill or permission.
 
 ```mermaid
 erDiagram
     DEPARTMENT ||--o{ ACTOR : employs
     DEPARTMENT ||--o{ TEAM : owns
-    DEPARTMENT o|--o{ TICKET : requester_department
-    DEPARTMENT o|--o{ TICKET : previous_department
-
-    ACTOR ||--o{ TEAM_MEMBERSHIP : has
+    ACTOR ||--o{ TEAM_MEMBERSHIP : joins
     TEAM ||--o{ TEAM_MEMBERSHIP : includes
     ACTOR ||--o{ ACTOR_CAPABILITY : receives
     CAPABILITY ||--o{ ACTOR_CAPABILITY : grants
-    ACTOR ||--o{ ACTOR_SYSTEM_AUTHORIZATION : receives
-    BUSINESS_SYSTEM ||--o{ ACTOR_SYSTEM_AUTHORIZATION : authorizes
-
-    BUSINESS_SYSTEM ||--o{ BUSINESS_ACTION : exposes
-    TICKET_CATEGORY o|--o{ TICKET_CATEGORY : parent_of
-
-    ACTOR ||--o{ TICKET : requests
-    ACTOR o|--o{ TICKET : assigned_to
-    TEAM o|--o{ TICKET : owns_queue
-    TICKET_CATEGORY o|--o{ TICKET : classifies
-    BUSINESS_SYSTEM o|--o{ TICKET : affects
-    BUSINESS_ACTION o|--o{ TICKET : requests_action
-
-    TICKET ||--o{ TICKET_COMMENT : contains
-    ACTOR ||--o{ TICKET_COMMENT : authors
-    TICKET ||--o{ TICKET_EVENT : records
-    ACTOR o|--o{ TICKET_EVENT : performs
-
-    TICKET ||--o{ TICKET_ANALYSIS : analyzed_by
-    TICKET_CATEGORY o|--o{ TICKET_ANALYSIS : suggested_category
-    TICKET_ANALYSIS ||--o{ ANALYSIS_CAPABILITY_REQUIREMENT : requires
-    CAPABILITY ||--o{ ANALYSIS_CAPABILITY_REQUIREMENT : referenced_by
-    TICKET_ANALYSIS ||--o{ ACTOR_EVALUATION : evaluates
-    ACTOR ||--o{ ACTOR_EVALUATION : candidate
 ```
-
-The diagram is logical. Relation labels distinguish cases where the same two
-entities are connected more than once, such as the requester and assignee of a
-ticket.
-
-## Identity and Organization
 
 ### Department
 
@@ -155,6 +168,23 @@ current grant.
 
 ## Service Catalog
 
+This context defines the controlled vocabulary used to normalize an LLM
+extraction. A system exposes actions, categories classify problems, and an
+authorization states whether an actor may work in a particular system.
+
+```mermaid
+erDiagram
+    BUSINESS_SYSTEM ||--o{ BUSINESS_ACTION : exposes
+    TICKET_CATEGORY o|--o{ TICKET_CATEGORY : parent_of
+    ACTOR ||--o{ ACTOR_SYSTEM_AUTHORIZATION : receives
+    BUSINESS_SYSTEM ||--o{ ACTOR_SYSTEM_AUTHORIZATION : authorizes
+```
+
+`TicketCategory` currently represents both broad problem families and their
+more specific problem types through its parent-child hierarchy. For example,
+`ACCESS_ISSUE` may be the parent of `MISSING_PERMISSION`. A separate problem
+entity can be introduced later if those concepts acquire different behavior.
+
 ### BusinessSystem
 
 Represents a business or technical system affected by requests.
@@ -214,6 +244,24 @@ authorized to execute it in a specific system.
 | `createdAt` | Yes      | Record creation timestamp. |
 
 ## Ticketing
+
+This context stores the operational case after human input has been enriched
+and normalized. It preserves both the request and the organizational context
+needed to explain cases such as a department change.
+
+```mermaid
+erDiagram
+    ACTOR ||--o{ TICKET : requests
+    ACTOR o|--o{ TICKET : assigned_to
+    TEAM o|--o{ TICKET : owns_queue
+    TICKET_CATEGORY o|--o{ TICKET : classifies
+    BUSINESS_SYSTEM o|--o{ TICKET : affects
+    BUSINESS_ACTION o|--o{ TICKET : requests_action
+    DEPARTMENT o|--o{ TICKET : requester_department
+    DEPARTMENT o|--o{ TICKET : previous_department
+    TICKET ||--o{ TICKET_COMMENT : contains
+    TICKET ||--o{ TICKET_EVENT : records
+```
 
 ### Ticket
 
@@ -303,6 +351,20 @@ column structure.
 
 ## Ticket Analysis
 
+This context stores each inference run rather than overwriting a single
+answer. It preserves the ontology version, effective input, requirements,
+candidate evaluations, and explanations needed for audit and human review.
+
+```mermaid
+erDiagram
+    TICKET ||--o{ TICKET_ANALYSIS : analyzed_by
+    TICKET_CATEGORY o|--o{ TICKET_ANALYSIS : suggested_category
+    TICKET_ANALYSIS ||--o{ ANALYSIS_CAPABILITY_REQUIREMENT : requires
+    CAPABILITY ||--o{ ANALYSIS_CAPABILITY_REQUIREMENT : referenced_by
+    TICKET_ANALYSIS ||--o{ ACTOR_EVALUATION : evaluates
+    ACTOR ||--o{ ACTOR_EVALUATION : candidate
+```
+
 ### TicketAnalysis
 
 Represents one immutable analysis attempt over a ticket input. A new analysis
@@ -364,7 +426,81 @@ elimination decisions. An actor may appear only once in an analysis.
 | `reasons`          | Yes      | Structured JSON explanations and rule outcomes.      |
 | `createdAt`        | Yes      | Record creation timestamp.                           |
 
-## Analysis flow
+## How eligibility is composed
+
+Eligibility is an intersection of independent facts. No single relationship
+is sufficient by itself:
+
+```mermaid
+flowchart TD
+    T[Ticket facts] --> RS[Required system]
+    T --> RA[Requested action]
+    T --> RP[Problem category]
+    RP --> RC[Required capability]
+
+    A[Candidate actor] --> AC[Current capability grants]
+    A --> AS[Current system authorizations]
+    A --> AT[Current team memberships]
+    A --> AA[Active status]
+
+    RS --> E{Eligibility rules}
+    RA --> E
+    RC --> E
+    AC --> E
+    AS --> E
+    AT --> E
+    AA --> E
+    E -->|all required rules pass| EL[Eligible candidate]
+    E -->|at least one required rule fails| IN[Ineligible candidate]
+```
+
+- A capability answers what an actor knows how to do.
+- A system authorization answers where an actor is allowed to act.
+- A team membership provides organizational and routing context.
+- An actor must be active and all time-bounded relationships must be current.
+- Ranking happens only after deterministic eligibility rules have passed.
+
+## Worked example
+
+Consider the report used at the beginning of this document:
+
+> I moved from Procurement to Finance and can no longer approve purchase
+> orders in the ERP.
+
+After LLM extraction and application normalization, the effective facts may
+be:
+
+| Fact                | Normalized value         |
+| ------------------- | ------------------------ |
+| Affected system     | `ERP`                    |
+| Requested action    | `APPROVE_PURCHASE_ORDER` |
+| Problem family      | `ACCESS_ISSUE`           |
+| Specific problem    | `MISSING_PERMISSION`     |
+| Current department  | `FINANCE`                |
+| Previous department | `PROCUREMENT`            |
+| Required capability | `ERP_ACCESS_MANAGEMENT`  |
+
+The LLM proposes the facts; ontology and policy rules derive that a missing
+permission for this ERP action requires `ERP_ACCESS_MANAGEMENT`. Candidate
+evaluation can then produce an explanation such as:
+
+```mermaid
+flowchart LR
+    P[Missing ERP permission] --> C[Requires ERP Access Management]
+    C --> Carla
+    C --> Diego
+    ERP[Requires current ERP authorization] --> Carla
+    ERP --> Diego
+    Carla --> CR[Eligible]
+    Diego --> DR[Ineligible: capability missing]
+```
+
+Carla is eligible because she is active, currently authorized for the ERP,
+and has the required capability. Diego may be authorized for the same system
+but remains ineligible when the required capability is absent. Both outcomes
+are persisted so the user can inspect selection and elimination reasons.
+
+## Analysis lifecycle
 
 ```mermaid
 flowchart LR
@@ -382,3 +518,67 @@ eligibility. The ontology and deterministic policies derive requirements and
 eliminate invalid candidates. Ranking operates only after eligibility and its
 score must not be presented as a probability of resolution unless a future
 calibrated predictive model supports that interpretation.
+
+## Complete relationship reference
+
+The complete diagram is useful when implementing persistence or tracing a
+relation across contexts. It is intentionally placed after the progressive
+explanation because it is not the recommended entry point for understanding
+the model.
+
+```mermaid
+erDiagram
+    DEPARTMENT ||--o{ ACTOR : employs
+    DEPARTMENT ||--o{ TEAM : owns
+    DEPARTMENT o|--o{ TICKET : requester_department
+    DEPARTMENT o|--o{ TICKET : previous_department
+
+    ACTOR ||--o{ TEAM_MEMBERSHIP : has
+    TEAM ||--o{ TEAM_MEMBERSHIP : includes
+    ACTOR ||--o{ ACTOR_CAPABILITY : receives
+    CAPABILITY ||--o{ ACTOR_CAPABILITY : grants
+    ACTOR ||--o{ ACTOR_SYSTEM_AUTHORIZATION : receives
+    BUSINESS_SYSTEM ||--o{ ACTOR_SYSTEM_AUTHORIZATION : authorizes
+
+    BUSINESS_SYSTEM ||--o{ BUSINESS_ACTION : exposes
+    TICKET_CATEGORY o|--o{ TICKET_CATEGORY : parent_of
+
+    ACTOR ||--o{ TICKET : requests
+    ACTOR o|--o{ TICKET : assigned_to
+    TEAM o|--o{ TICKET : owns_queue
+    TICKET_CATEGORY o|--o{ TICKET : classifies
+    BUSINESS_SYSTEM o|--o{ TICKET : affects
+    BUSINESS_ACTION o|--o{ TICKET : requests_action
+
+    TICKET ||--o{ TICKET_COMMENT : contains
+    ACTOR ||--o{ TICKET_COMMENT : authors
+    TICKET ||--o{ TICKET_EVENT : records
+    ACTOR o|--o{ TICKET_EVENT : performs
+
+    TICKET ||--o{ TICKET_ANALYSIS : analyzed_by
+    TICKET_CATEGORY o|--o{ TICKET_ANALYSIS : suggested_category
+    TICKET_ANALYSIS ||--o{ ANALYSIS_CAPABILITY_REQUIREMENT : requires
+    CAPABILITY ||--o{ ANALYSIS_CAPABILITY_REQUIREMENT : referenced_by
+    TICKET_ANALYSIS ||--o{ ACTOR_EVALUATION : evaluates
+    ACTOR ||--o{ ACTOR_EVALUATION : candidate
+```
+
+Relation labels distinguish cases where the same two entities are connected
+more than once, such as requester and assignee or current and previous
+department.
+
+## Further reading
+
+The relational schema persists application facts. The future ontology layer
+will express a shared vocabulary and rules over those facts. These W3C sources
+provide the conceptual and technical foundation:
+
+- [RDF 1.1 Concepts and Abstract Syntax](https://www.w3.org/TR/rdf11-concepts/)
+  defines the graph data model and terminology used by RDF-based languages.
+- [OWL 2 Web Ontology Language Overview](https://www.w3.org/TR/owl-overview/)
+  introduces OWL 2 and its relationship to RDF.
+- [OWL 2 Primer](https://www.w3.org/TR/owl2-primer/) provides an approachable,
+  example-driven introduction to classes, properties, individuals, and
+  reasoning.
+- [OWL 2 Quick Reference](https://www.w3.org/TR/owl2-quick-reference/) is a
+  compact reference for language constructs after the primer.
