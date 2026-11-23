@@ -6,6 +6,7 @@ import { ActorProfilePage } from './pages/actor-profile.page.js'
 import { ActorsPage } from './pages/actors.page.js'
 import { CapabilitiesPage } from './pages/capabilities.page.js'
 import { CapabilityProfilePage } from './pages/capability-profile.page.js'
+import { HomePage } from './pages/home.page.js'
 import { ScenarioPage } from './pages/scenario.page.js'
 import { SystemProfilePage } from './pages/system-profile.page.js'
 import { SystemsPage } from './pages/systems.page.js'
@@ -28,6 +29,7 @@ export function App() {
       <BrowserRouter>
         <Routes>
           <Route element={<AppLayout />}>
+            <Route element={<HomePage />} index />
             <Route element={<ScenarioPage />} path="/scenario" />
             <Route element={<SystemsPage />} path="/systems" />
             <Route element={<SystemProfilePage />} path="/system/:id/profile" />
@@ -40,7 +42,7 @@ export function App() {
             />
             <Route element={<TeamsPage />} path="/teams" />
             <Route element={<TeamProfilePage />} path="/team/:id/profile" />
-            <Route element={<Navigate replace to="/scenario" />} path="*" />
+            <Route element={<Navigate replace to="/" />} path="*" />
           </Route>
         </Routes>
       </BrowserRouter>

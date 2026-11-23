@@ -3,12 +3,35 @@ import { NavLink, Outlet } from 'react-router'
 export function AppLayout() {
   return (
     <>
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-        <div className="container-fluid px-lg-4">
-          <NavLink className="navbar-brand fw-semibold" to="/scenario">
-            <i aria-hidden="true" className="bi bi-diagram-3 me-2" />
-            Semantic Service Desk
+      <nav className="navbar navbar-light bg-white border-bottom shadow-sm sticky-top">
+        <div className="container py-1">
+          <NavLink
+            className="navbar-brand d-flex align-items-center gap-2 fw-semibold me-4"
+            to="/"
+          >
+            <span aria-hidden="true" className="brand-icon">
+              <i className="bi bi-diagram-3" />
+            </span>
+            <span>Semantic Service Desk</span>
           </NavLink>
+
+          <div className="navbar-nav flex-row flex-wrap align-items-center gap-1 ms-auto">
+            <NavLink className={navLinkClassName} end to="/">
+              Home
+            </NavLink>
+            <NavLink className={navLinkClassName} to="/scenario">
+              Scenario
+            </NavLink>
+            <span aria-disabled="true" className="nav-link disabled px-2">
+              Create ticket
+            </span>
+            <span aria-disabled="true" className="nav-link disabled px-2">
+              Analysis
+            </span>
+            <span aria-disabled="true" className="nav-link disabled px-2">
+              Knowledge graph
+            </span>
+          </div>
         </div>
       </nav>
 
@@ -17,4 +40,8 @@ export function AppLayout() {
       </main>
     </>
   )
+}
+
+function navLinkClassName({ isActive }: { isActive: boolean }) {
+  return `nav-link px-2${isActive ? ' active fw-semibold' : ''}`
 }
