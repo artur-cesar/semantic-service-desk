@@ -8,6 +8,7 @@ import { loadEnvironment } from './config/environment.js'
 import { actorRoutes } from './routes/actor.routes.js'
 import { healthRoutes } from './routes/health.routes.js'
 import { scenarioRoutes } from './routes/scenario.routes.js'
+import { teamRoutes } from './routes/team.routes.js'
 
 interface BuildAppOptions {
   dependencies?: Dependencies
@@ -34,6 +35,9 @@ export async function buildApp(options: BuildAppOptions = {}) {
   })
   await app.register(scenarioRoutes, {
     controller: dependencies.scenarioController,
+  })
+  await app.register(teamRoutes, {
+    controller: dependencies.teamController,
   })
 
   return app
