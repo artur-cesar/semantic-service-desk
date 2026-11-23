@@ -6,6 +6,7 @@ import {
 } from './bootstrap/dependencies.js'
 import { loadEnvironment } from './config/environment.js'
 import { actorRoutes } from './routes/actor.routes.js'
+import { capabilityRoutes } from './routes/capability.routes.js'
 import { healthRoutes } from './routes/health.routes.js'
 import { scenarioRoutes } from './routes/scenario.routes.js'
 import { systemRoutes } from './routes/system.routes.js'
@@ -30,6 +31,9 @@ export async function buildApp(options: BuildAppOptions = {}) {
 
   await app.register(actorRoutes, {
     controller: dependencies.actorController,
+  })
+  await app.register(capabilityRoutes, {
+    controller: dependencies.capabilityController,
   })
   await app.register(healthRoutes, {
     controller: dependencies.healthController,

@@ -1,17 +1,20 @@
 import type { Environment } from '../config/environment.js'
 
 import { createActorController } from '../controller/actor.controller.js'
+import { createCapabilityController } from '../controller/capability.controller.js'
 import { createHealthController } from '../controller/health.controller.js'
 import { createScenarioController } from '../controller/scenario.controller.js'
 import { createSystemController } from '../controller/system.controller.js'
 import { createTeamController } from '../controller/team.controller.js'
 import { createPrismaClient } from '../database/prisma.js'
 import { createActorRepository } from '../repository/actor.repository.js'
+import { createCapabilityRepository } from '../repository/capability.repository.js'
 import { createHealthRepository } from '../repository/health.repository.js'
 import { createScenarioRepository } from '../repository/scenario.repository.js'
 import { createSystemRepository } from '../repository/system.repository.js'
 import { createTeamRepository } from '../repository/team.repository.js'
 import { createActorService } from '../service/actor.service.js'
+import { createCapabilityService } from '../service/capability.service.js'
 import { createHealthService } from '../service/health.service.js'
 import { createScenarioService } from '../service/scenario.service.js'
 import { createSystemService } from '../service/system.service.js'
@@ -42,6 +45,9 @@ export function createDependencies(environment: Environment) {
   const actorRepository = createActorRepository(prisma)
   const actorService = createActorService(actorRepository)
   const actorController = createActorController(actorService)
+  const capabilityRepository = createCapabilityRepository(prisma)
+  const capabilityService = createCapabilityService(capabilityRepository)
+  const capabilityController = createCapabilityController(capabilityService)
 
   async function dispose(): Promise<void> {
     await prisma.$disconnect()
@@ -49,6 +55,7 @@ export function createDependencies(environment: Environment) {
 
   return {
     actorController,
+    capabilityController,
     dispose,
     healthController,
     scenarioController,
