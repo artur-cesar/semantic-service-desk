@@ -75,7 +75,7 @@ const contexts = [
 
 export function HomePage() {
   return (
-    <div className="container py-lg-3">
+    <div className="py-lg-3">
       <header className="project-header border-bottom pb-4 mb-4">
         <div className="row align-items-end g-4">
           <div className="col-lg-8">

@@ -13,7 +13,6 @@ import type { TicketService } from '../service/ticket.service.js'
 export type TicketController = ReturnType<typeof createTicketController>
 
 export function createTicketController(service: TicketService) {
-
   async function create(
     request: FastifyRequest<{ Body: CreateTicketBody }>,
     reply: FastifyReply,

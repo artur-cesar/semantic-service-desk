@@ -41,7 +41,10 @@ test('uses a shared navbar with current and future navigation', () => {
     'href',
     '/scenario',
   )
-  expect(screen.getByText('Create ticket')).toHaveClass('disabled')
+  expect(screen.getByRole('link', { name: 'Create ticket' })).toHaveAttribute(
+    'href',
+    '/tickets/new',
+  )
   expect(screen.getByText('Analysis')).toHaveClass('disabled')
 })
 

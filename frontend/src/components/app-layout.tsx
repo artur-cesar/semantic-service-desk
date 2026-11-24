@@ -22,9 +22,9 @@ export function AppLayout() {
             <NavLink className={navLinkClassName} to="/scenario">
               Scenario
             </NavLink>
-            <span aria-disabled="true" className="nav-link disabled px-2">
+            <NavLink className={navLinkClassName} to="/tickets/new">
               Create ticket
-            </span>
+            </NavLink>
             <span aria-disabled="true" className="nav-link disabled px-2">
               Analysis
             </span>
@@ -35,7 +35,7 @@ export function AppLayout() {
         </div>
       </nav>
 
-      <main className="container-fluid px-3 px-lg-4 py-4">
+      <main className="container py-4">
         <Outlet />
       </main>
     </>

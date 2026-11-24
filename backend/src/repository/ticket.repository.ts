@@ -19,7 +19,6 @@ export interface TicketRepository {
 export function createTicketRepository(
   prisma: AppPrismaClient,
 ): TicketRepository {
-
   async function create(data: CreateTicketData): Promise<Ticket> {
     const record = await prisma.ticket.create({
       data: {
