@@ -77,7 +77,7 @@ void test('POST /tickets creates an open ticket', async (context) => {
       return Promise.resolve(ticket)
     },
     findById: () => Promise.resolve(null),
-    list: () => Promise.resolve([]),
+    list: () => Promise.resolve({ tickets: [], totalItems: 0 }),
   }
   const app = await buildApp({
     dependencies: createTestDependencies({
@@ -125,11 +125,15 @@ void test('POST /tickets returns 404 for an unknown requester', async (context) 
   assert.deepEqual(response.json(), { message: 'Requester not found' })
 })
 
-void test('GET /tickets returns tickets ordered by the repository', async (context) => {
+void test('GET /tickets returns the most recent tickets by default', async (context) => {
+  let listOptions: Parameters<TicketRepository['list']>[0] | undefined
   const repository: TicketRepository = {
     create: () => Promise.resolve(ticket),
     findById: () => Promise.resolve(null),
-    list: () => Promise.resolve([ticket]),
+    list: (options) => {
+      listOptions = options
+      return Promise.resolve({ tickets: [ticket], totalItems: 21 })
+    },
   }
   const app = await buildApp({
     dependencies: createTestDependencies({ ticketRepository: repository }),
@@ -139,14 +143,77 @@ void test('GET /tickets returns tickets ordered by the repository', async (conte
   const response = await app.inject({ method: 'GET', url: '/tickets' })
 
   assert.equal(response.statusCode, 200)
-  assert.equal(response.json<{ tickets: Ticket[] }>().tickets.length, 1)
+  assert.deepEqual(listOptions, {
+    createdAtOrder: 'desc',
+    page: 1,
+    pageSize: 20,
+  })
+  const responseBody = response.json<{
+    pagination: {
+      hasNextPage: boolean
+      hasPreviousPage: boolean
+      page: number
+      pageSize: number
+      totalItems: number
+      totalPages: number
+    }
+    tickets: unknown[]
+  }>()
+  assert.deepEqual(responseBody.pagination, {
+    hasNextPage: true,
+    hasPreviousPage: false,
+    page: 1,
+    pageSize: 20,
+    totalItems: 21,
+    totalPages: 2,
+  })
+  assert.equal(responseBody.tickets.length, 1)
+})
+
+void test('GET /tickets accepts pagination and ascending date order', async (context) => {
+  let listOptions: Parameters<TicketRepository['list']>[0] | undefined
+  const repository: TicketRepository = {
+    create: () => Promise.resolve(ticket),
+    findById: () => Promise.resolve(null),
+    list: (options) => {
+      listOptions = options
+      return Promise.resolve({ tickets: [], totalItems: 45 })
+    },
+  }
+  const app = await buildApp({
+    dependencies: createTestDependencies({ ticketRepository: repository }),
+  })
+  context.after(() => app.close())
+
+  const response = await app.inject({
+    method: 'GET',
+    url: '/tickets?page=2&pageSize=10&createdAtOrder=asc',
+  })
+
+  assert.equal(response.statusCode, 200)
+  assert.deepEqual(listOptions, {
+    createdAtOrder: 'asc',
+    page: 2,
+    pageSize: 10,
+  })
+  assert.deepEqual(response.json(), {
+    pagination: {
+      hasNextPage: true,
+      hasPreviousPage: true,
+      page: 2,
+      pageSize: 10,
+      totalItems: 45,
+      totalPages: 5,
+    },
+    tickets: [],
+  })
 })
 
 void test('GET /tickets/:id returns a ticket', async (context) => {
   const repository: TicketRepository = {
     create: () => Promise.resolve(ticket),
     findById: (id) => Promise.resolve(id === ticketId ? ticket : null),
-    list: () => Promise.resolve([]),
+    list: () => Promise.resolve({ tickets: [], totalItems: 0 }),
   }
   const app = await buildApp({
     dependencies: createTestDependencies({ ticketRepository: repository }),

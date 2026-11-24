@@ -74,7 +74,7 @@ const defaultSystemRepository: SystemRepository = {
 const defaultTicketRepository: TicketRepository = {
   create: () => Promise.reject(new Error('Unexpected ticket creation')),
   findById: () => Promise.resolve(null),
-  list: () => Promise.resolve([]),
+  list: () => Promise.resolve({ tickets: [], totalItems: 0 }),
 }
 
 export function createTestDependencies(

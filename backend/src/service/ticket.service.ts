@@ -1,6 +1,10 @@
 import type { Ticket, TicketPriority } from '../domain/ticket.domain.js'
 import type { ActorRepository } from '../repository/actor.repository.js'
-import type { TicketRepository } from '../repository/ticket.repository.js'
+import type {
+  ListTicketsOptions,
+  TicketPage,
+  TicketRepository,
+} from '../repository/ticket.repository.js'
 
 export interface CreateTicketInput {
   description: string
@@ -12,7 +16,7 @@ export interface CreateTicketInput {
 export interface TicketService {
   create(input: CreateTicketInput): Promise<null | Ticket>
   findById(id: string): Promise<null | Ticket>
-  list(): Promise<Ticket[]>
+  list(options: ListTicketsOptions): Promise<TicketPage>
 }
 
 export function createTicketService(
@@ -30,6 +34,6 @@ export function createTicketService(
       return ticketRepository.create(input)
     },
     findById: (id) => ticketRepository.findById(id),
-    list: () => ticketRepository.list(),
+    list: (options) => ticketRepository.list(options),
   }
 }

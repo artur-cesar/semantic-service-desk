@@ -61,8 +61,32 @@ export const ticketResponseSchema = Type.Object(
 )
 
 export const ticketsResponseSchema = Type.Object(
-  { tickets: Type.Array(ticketResponseSchema) },
+  {
+    pagination: Type.Object(
+      {
+        hasNextPage: Type.Boolean(),
+        hasPreviousPage: Type.Boolean(),
+        page: Type.Integer({ minimum: 1 }),
+        pageSize: Type.Integer({ minimum: 1 }),
+        totalItems: Type.Integer({ minimum: 0 }),
+        totalPages: Type.Integer({ minimum: 0 }),
+      },
+      { additionalProperties: false },
+    ),
+    tickets: Type.Array(ticketResponseSchema),
+  },
   { $id: 'TicketsResponse', additionalProperties: false },
+)
+
+export const ticketsQuerySchema = Type.Object(
+  {
+    createdAtOrder: Type.Optional(
+      Type.Union([Type.Literal('asc'), Type.Literal('desc')]),
+    ),
+    page: Type.Optional(Type.Integer({ minimum: 1 })),
+    pageSize: Type.Optional(Type.Integer({ maximum: 100, minimum: 1 })),
+  },
+  { additionalProperties: false },
 )
 
 export const createTicketBodySchema = Type.Object(
@@ -86,6 +110,7 @@ export const ticketNotFoundResponseSchema = Type.Object(
 )
 
 export const ticketsRouteSchema = {
+  querystring: ticketsQuerySchema,
   response: { 200: ticketsResponseSchema },
 } as const
 
@@ -109,4 +134,5 @@ export type CreateTicketBody = Static<typeof createTicketBodySchema>
 export type TicketIdParameters = Static<typeof ticketIdParametersSchema>
 export type TicketNotFoundResponse = Static<typeof ticketNotFoundResponseSchema>
 export type TicketResponse = Static<typeof ticketResponseSchema>
+export type TicketsQuery = Static<typeof ticketsQuerySchema>
 export type TicketsResponse = Static<typeof ticketsResponseSchema>

@@ -6,6 +6,7 @@ import type {
   TicketIdParameters,
   TicketNotFoundResponse,
   TicketResponse,
+  TicketsQuery,
   TicketsResponse,
 } from '../responses/ticket.response.js'
 import type { TicketService } from '../service/ticket.service.js'
@@ -44,10 +45,26 @@ export function createTicketController(service: TicketService) {
     return toResponse(ticket)
   }
 
-  async function list(): Promise<TicketsResponse> {
-    const tickets = await service.list()
+  async function list(
+    request: FastifyRequest<{ Querystring: TicketsQuery }>,
+  ): Promise<TicketsResponse> {
+    const createdAtOrder = request.query.createdAtOrder ?? 'desc'
+    const page = request.query.page ?? 1
+    const pageSize = request.query.pageSize ?? 20
+    const result = await service.list({ createdAtOrder, page, pageSize })
+    const totalPages = Math.ceil(result.totalItems / pageSize)
 
-    return { tickets: tickets.map(toResponse) }
+    return {
+      pagination: {
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+        page,
+        pageSize,
+        totalItems: result.totalItems,
+        totalPages,
+      },
+      tickets: result.tickets.map(toResponse),
+    }
   }
 
   return { create, findById, list }

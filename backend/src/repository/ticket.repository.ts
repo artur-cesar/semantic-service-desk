@@ -10,10 +10,21 @@ export interface CreateTicketData {
   title: string
 }
 
+export interface ListTicketsOptions {
+  createdAtOrder: 'asc' | 'desc'
+  page: number
+  pageSize: number
+}
+
+export interface TicketPage {
+  tickets: Ticket[]
+  totalItems: number
+}
+
 export interface TicketRepository {
   create(data: CreateTicketData): Promise<Ticket>
   findById(id: string): Promise<null | Ticket>
-  list(): Promise<Ticket[]>
+  list(options: ListTicketsOptions): Promise<TicketPage>
 }
 
 export function createTicketRepository(
@@ -45,12 +56,23 @@ export function createTicketRepository(
     return record ? Ticket.create(record) : null
   }
 
-  async function list(): Promise<Ticket[]> {
-    const records = await prisma.ticket.findMany({
-      orderBy: { createdAt: 'desc' },
-    })
+  async function list(options: ListTicketsOptions): Promise<TicketPage> {
+    const [totalItems, records] = await prisma.$transaction([
+      prisma.ticket.count(),
+      prisma.ticket.findMany({
+        orderBy: [
+          { createdAt: options.createdAtOrder },
+          { number: options.createdAtOrder },
+        ],
+        skip: (options.page - 1) * options.pageSize,
+        take: options.pageSize,
+      }),
+    ])
 
-    return records.map((record) => Ticket.create(record))
+    return {
+      tickets: records.map((record) => Ticket.create(record)),
+      totalItems,
+    }
   }
 
   return { create, findById, list }
