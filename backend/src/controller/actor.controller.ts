@@ -10,14 +10,14 @@ import type { ActorService } from '../service/actor.service.js'
 
 import { Actor } from '../domain/actor.domain.js'
 
-export type ActorController = ReturnType<typeof createActorController>
+export class ActorController {
+  constructor(private readonly service: ActorService) {}
 
-export function createActorController(service: ActorService) {
-  async function findById(
+  findById = async (
     request: FastifyRequest<{ Params: ActorIdParameters }>,
     reply: FastifyReply,
-  ): Promise<ActorNotFoundResponse | ActorResponse> {
-    const actor = await service.findById(request.params.id)
+  ): Promise<ActorNotFoundResponse | ActorResponse> => {
+    const actor = await this.service.findById(request.params.id)
 
     if (!actor) {
       return reply.code(404).send({ message: 'Actor not found' })
@@ -26,8 +26,8 @@ export function createActorController(service: ActorService) {
     return toActorResponse(actor)
   }
 
-  async function list(): Promise<ActorsResponse> {
-    const actors = await service.list()
+  list = async (): Promise<ActorsResponse> => {
+    const actors = await this.service.list()
 
     return {
       actors: actors.map((actor) => ({
@@ -45,8 +45,6 @@ export function createActorController(service: ActorService) {
       })),
     }
   }
-
-  return { findById, list }
 }
 
 function toActorResponse(actor: Actor): ActorResponse {

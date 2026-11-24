@@ -16,10 +16,10 @@ export interface ScenarioRepository {
   getScenario(): Promise<Scenario>
 }
 
-export function createScenarioRepository(
-  prisma: AppPrismaClient,
-): ScenarioRepository {
-  async function getScenario(): Promise<Scenario> {
+export class PrismaScenarioRepository implements ScenarioRepository {
+  constructor(private readonly prisma: AppPrismaClient) {}
+
+  async getScenario(): Promise<Scenario> {
     const [
       departmentRecords,
       capabilityRecords,
@@ -28,15 +28,15 @@ export function createScenarioRepository(
       categoryRecords,
       actorRecords,
     ] = await Promise.all([
-      prisma.department.findMany({
+      this.prisma.department.findMany({
         orderBy: { code: 'asc' },
         where: { active: true },
       }),
-      prisma.capability.findMany({
+      this.prisma.capability.findMany({
         orderBy: { code: 'asc' },
         where: { active: true },
       }),
-      prisma.businessSystem.findMany({
+      this.prisma.businessSystem.findMany({
         include: {
           actions: {
             orderBy: { code: 'asc' },
@@ -46,18 +46,18 @@ export function createScenarioRepository(
         orderBy: { code: 'asc' },
         where: { active: true },
       }),
-      prisma.team.findMany({
+      this.prisma.team.findMany({
         orderBy: { code: 'asc' },
         where: {
           active: true,
           department: { active: true },
         },
       }),
-      prisma.ticketCategory.findMany({
+      this.prisma.ticketCategory.findMany({
         orderBy: { code: 'asc' },
         where: { active: true },
       }),
-      prisma.actor.findMany({
+      this.prisma.actor.findMany({
         include: {
           authorizations: {
             orderBy: { system: { code: 'asc' } },
@@ -199,10 +199,6 @@ export function createScenarioRepository(
       systems,
       teams,
     })
-  }
-
-  return {
-    getScenario,
   }
 }
 

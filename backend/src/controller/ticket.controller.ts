@@ -12,14 +12,16 @@ import type {
 } from '../responses/ticket.response.js'
 import type { TicketService } from '../service/ticket.service.js'
 
-export type TicketController = ReturnType<typeof createTicketController>
+export class TicketController {
+  constructor(private readonly service: TicketService) {}
 
-export function createTicketController(service: TicketService) {
-  async function confirm(
+  confirm = async (
     request: FastifyRequest<{ Params: TicketIdParameters }>,
     reply: FastifyReply,
-  ): Promise<TicketConflictResponse | TicketNotFoundResponse | TicketResponse> {
-    const result = await service.confirm(request.params.id)
+  ): Promise<
+    TicketConflictResponse | TicketNotFoundResponse | TicketResponse
+  > => {
+    const result = await this.service.confirm(request.params.id)
 
     if (result.outcome === 'not_found') {
       return reply.code(404).send({ message: 'Ticket not found' })
@@ -34,11 +36,11 @@ export function createTicketController(service: TicketService) {
     return toResponse(result.ticket)
   }
 
-  async function create(
+  create = async (
     request: FastifyRequest<{ Body: CreateTicketBody }>,
     reply: FastifyReply,
-  ): Promise<TicketNotFoundResponse | TicketResponse> {
-    const ticket = await service.create({
+  ): Promise<TicketNotFoundResponse | TicketResponse> => {
+    const ticket = await this.service.create({
       description: request.body.description,
       priority: request.body.priority ?? 'MEDIUM',
       requesterId: request.body.requesterId,
@@ -52,11 +54,11 @@ export function createTicketController(service: TicketService) {
     return reply.code(201).send(toResponse(ticket))
   }
 
-  async function findById(
+  findById = async (
     request: FastifyRequest<{ Params: TicketIdParameters }>,
     reply: FastifyReply,
-  ): Promise<TicketNotFoundResponse | TicketResponse> {
-    const ticket = await service.findById(request.params.id)
+  ): Promise<TicketNotFoundResponse | TicketResponse> => {
+    const ticket = await this.service.findById(request.params.id)
 
     if (!ticket) {
       return reply.code(404).send({ message: 'Ticket not found' })
@@ -65,13 +67,13 @@ export function createTicketController(service: TicketService) {
     return toResponse(ticket)
   }
 
-  async function list(
+  list = async (
     request: FastifyRequest<{ Querystring: TicketsQuery }>,
-  ): Promise<TicketsResponse> {
+  ): Promise<TicketsResponse> => {
     const createdAtOrder = request.query.createdAtOrder ?? 'desc'
     const page = request.query.page ?? 1
     const pageSize = request.query.pageSize ?? 20
-    const result = await service.list({ createdAtOrder, page, pageSize })
+    const result = await this.service.list({ createdAtOrder, page, pageSize })
     const totalPages = Math.ceil(result.totalItems / pageSize)
 
     return {
@@ -86,8 +88,6 @@ export function createTicketController(service: TicketService) {
       tickets: result.tickets.map(toResponse),
     }
   }
-
-  return { confirm, create, findById, list }
 }
 
 function toResponse(ticket: Ticket): TicketResponse {

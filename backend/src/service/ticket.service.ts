@@ -14,29 +14,31 @@ export interface CreateTicketInput {
   title: string
 }
 
-export interface TicketService {
-  confirm(id: string): Promise<ConfirmTicketResult>
-  create(input: CreateTicketInput): Promise<null | Ticket>
-  findById(id: string): Promise<null | Ticket>
-  list(options: ListTicketsOptions): Promise<TicketPage>
-}
+export class TicketService {
+  constructor(
+    private readonly ticketRepository: TicketRepository,
+    private readonly actorRepository: ActorRepository,
+  ) {}
 
-export function createTicketService(
-  ticketRepository: TicketRepository,
-  actorRepository: ActorRepository,
-): TicketService {
-  return {
-    confirm: (id) => ticketRepository.confirm(id),
-    async create(input) {
-      const requester = await actorRepository.findById(input.requesterId)
+  confirm(id: string): Promise<ConfirmTicketResult> {
+    return this.ticketRepository.confirm(id)
+  }
 
-      if (!requester) {
-        return null
-      }
+  async create(input: CreateTicketInput): Promise<null | Ticket> {
+    const requester = await this.actorRepository.findById(input.requesterId)
 
-      return ticketRepository.create(input)
-    },
-    findById: (id) => ticketRepository.findById(id),
-    list: (options) => ticketRepository.list(options),
+    if (!requester) {
+      return null
+    }
+
+    return this.ticketRepository.create(input)
+  }
+
+  findById(id: string): Promise<null | Ticket> {
+    return this.ticketRepository.findById(id)
+  }
+
+  list(options: ListTicketsOptions): Promise<TicketPage> {
+    return this.ticketRepository.list(options)
   }
 }

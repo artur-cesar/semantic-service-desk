@@ -23,11 +23,11 @@ type SystemRecord = Prisma.BusinessSystemGetPayload<{
   include: typeof systemInclude
 }>
 
-export function createSystemRepository(
-  prisma: AppPrismaClient,
-): SystemRepository {
-  async function findById(id: string): Promise<null | SystemDetails> {
-    const record = await prisma.businessSystem.findFirst({
+export class PrismaSystemRepository implements SystemRepository {
+  constructor(private readonly prisma: AppPrismaClient) {}
+
+  async findById(id: string): Promise<null | SystemDetails> {
+    const record = await this.prisma.businessSystem.findFirst({
       include: systemInclude,
       where: { active: true, id },
     })
@@ -35,8 +35,8 @@ export function createSystemRepository(
     return record ? toDomain(record) : null
   }
 
-  async function list(): Promise<SystemDetails[]> {
-    const records = await prisma.businessSystem.findMany({
+  async list(): Promise<SystemDetails[]> {
+    const records = await this.prisma.businessSystem.findMany({
       include: systemInclude,
       orderBy: { name: 'asc' },
       where: { active: true },
@@ -44,8 +44,6 @@ export function createSystemRepository(
 
     return records.map(toDomain)
   }
-
-  return { findById, list }
 }
 
 function toDomain(record: SystemRecord): SystemDetails {

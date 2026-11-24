@@ -1,14 +1,14 @@
 import type { Actor } from '../domain/actor.domain.js'
 import type { ActorRepository } from '../repository/actor.repository.js'
 
-export interface ActorService {
-  findById(id: string): Promise<Actor | null>
-  list(): Promise<Actor[]>
-}
+export class ActorService {
+  constructor(private readonly repository: ActorRepository) {}
 
-export function createActorService(repository: ActorRepository): ActorService {
-  return {
-    findById: (id) => repository.findById(id),
-    list: () => repository.list(),
+  findById(id: string): Promise<Actor | null> {
+    return this.repository.findById(id)
+  }
+
+  list(): Promise<Actor[]> {
+    return this.repository.list()
   }
 }

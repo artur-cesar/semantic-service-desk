@@ -8,14 +8,14 @@ import type {
 } from '../responses/capability.response.js'
 import type { CapabilityService } from '../service/capability.service.js'
 
-export type CapabilityController = ReturnType<typeof createCapabilityController>
+export class CapabilityController {
+  constructor(private readonly service: CapabilityService) {}
 
-export function createCapabilityController(service: CapabilityService) {
-  async function findById(
+  findById = async (
     request: FastifyRequest<{ Params: CapabilityIdParameters }>,
     reply: FastifyReply,
-  ): Promise<CapabilityDetailsResponse | CapabilityNotFoundResponse> {
-    const details = await service.findById(request.params.id)
+  ): Promise<CapabilityDetailsResponse | CapabilityNotFoundResponse> => {
+    const details = await this.service.findById(request.params.id)
 
     if (!details) {
       return reply.code(404).send({ message: 'Capability not found' })
@@ -43,8 +43,8 @@ export function createCapabilityController(service: CapabilityService) {
     }
   }
 
-  async function list(): Promise<CapabilitiesResponse> {
-    const details = await service.list()
+  list = async (): Promise<CapabilitiesResponse> => {
+    const details = await this.service.list()
 
     return {
       capabilities: details.map(({ actors, capability }) => ({
@@ -56,6 +56,4 @@ export function createCapabilityController(service: CapabilityService) {
       })),
     }
   }
-
-  return { findById, list }
 }

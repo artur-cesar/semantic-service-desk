@@ -48,8 +48,8 @@ Dependencies must not point in the opposite direction. In particular:
 
 ## Manual dependency injection
 
-Dependency injection is manual and explicit. Factory functions receive their
-dependencies as arguments, and `src/bootstrap/dependencies.ts` is the
+Dependency injection is manual and explicit. Concrete classes receive their
+dependencies through constructors, and `src/bootstrap/dependencies.ts` is the
 composition root.
 
 The expected construction order is:
@@ -260,13 +260,14 @@ domain behavior.
 A controller:
 
 - uses the `<resource>.controller.ts` naming convention;
-- is created by a `create<Resource>Controller` factory;
-- receives its service through the factory when a service exists;
+- is a concrete `<Resource>Controller` class;
+- receives its service through constructor injection when a service exists;
+- exposes bound handlers when they are passed directly to Fastify;
 - returns a response type declared in `src/responses`;
 - translates known application results into HTTP status codes and responses.
 
-Infrastructure endpoints may use a controller without a service when no
-application behavior exists. The health check is the current example.
+Do not create a controller interface unless multiple implementations establish
+a concrete need for one.
 
 ## Services
 
@@ -276,10 +277,13 @@ only when the resource has application or domain behavior.
 A service:
 
 - uses the `<resource>.service.ts` naming convention;
-- is created by a `create<Resource>Service` factory;
-- receives repositories or other services explicitly;
+- is a concrete `<Resource>Service` class;
+- receives repositories or other services through constructor injection;
 - does not depend on Fastify request or reply objects;
 - owns business rules, state transitions, and use-case coordination.
+
+Do not create a service interface merely to mirror its class. Add an interface
+only when multiple implementations establish a concrete need for one.
 
 ## Repositories
 
@@ -289,8 +293,9 @@ resource reads or writes persistent state.
 A repository:
 
 - uses the `<resource>.repository.ts` naming convention;
-- is created by a `create<Resource>Repository` factory;
-- receives the database client explicitly;
+- exports a `<Resource>Repository` interface as the persistence contract;
+- implements that contract in a `Prisma<Resource>Repository` class;
+- receives the database client through constructor injection;
 - exposes operations required by application use cases;
 - converts persistence records into complete project-owned domains;
 - does not decide HTTP status codes or business workflows.

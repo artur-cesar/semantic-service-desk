@@ -1,11 +1,11 @@
 import type { ScenarioResponse } from '../responses/scenario.response.js'
 import type { ScenarioService } from '../service/scenario.service.js'
 
-export type ScenarioController = ReturnType<typeof createScenarioController>
+export class ScenarioController {
+  constructor(private readonly service: ScenarioService) {}
 
-export function createScenarioController(service: ScenarioService) {
-  async function getScenario(): Promise<ScenarioResponse> {
-    const scenario = await service.getScenario()
+  getScenario = async (): Promise<ScenarioResponse> => {
+    const scenario = await this.service.getScenario()
 
     return {
       actors: scenario.actors.map((actor) => ({
@@ -77,9 +77,5 @@ export function createScenarioController(service: ScenarioService) {
         name: team.name,
       })),
     }
-  }
-
-  return {
-    getScenario,
   }
 }

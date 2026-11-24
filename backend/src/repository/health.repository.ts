@@ -4,14 +4,10 @@ export interface HealthRepository {
   checkDatabase(): Promise<void>
 }
 
-export function createHealthRepository(
-  prisma: AppPrismaClient,
-): HealthRepository {
-  async function checkDatabase(): Promise<void> {
-    await prisma.$queryRaw`SELECT 1`
-  }
+export class PrismaHealthRepository implements HealthRepository {
+  constructor(private readonly prisma: AppPrismaClient) {}
 
-  return {
-    checkDatabase,
+  async checkDatabase(): Promise<void> {
+    await this.prisma.$queryRaw`SELECT 1`
   }
 }

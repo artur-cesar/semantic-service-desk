@@ -21,9 +21,11 @@ const teamInclude = {
 
 type TeamRecord = Prisma.TeamGetPayload<{ include: typeof teamInclude }>
 
-export function createTeamRepository(prisma: AppPrismaClient): TeamRepository {
-  async function findById(id: string): Promise<null | TeamDetails> {
-    const record = await prisma.team.findFirst({
+export class PrismaTeamRepository implements TeamRepository {
+  constructor(private readonly prisma: AppPrismaClient) {}
+
+  async findById(id: string): Promise<null | TeamDetails> {
+    const record = await this.prisma.team.findFirst({
       include: teamInclude,
       where: {
         active: true,
@@ -35,8 +37,8 @@ export function createTeamRepository(prisma: AppPrismaClient): TeamRepository {
     return record ? toDomain(record) : null
   }
 
-  async function list(): Promise<TeamDetails[]> {
-    const records = await prisma.team.findMany({
+  async list(): Promise<TeamDetails[]> {
+    const records = await this.prisma.team.findMany({
       include: teamInclude,
       orderBy: { name: 'asc' },
       where: {
@@ -47,8 +49,6 @@ export function createTeamRepository(prisma: AppPrismaClient): TeamRepository {
 
     return records.map(toDomain)
   }
-
-  return { findById, list }
 }
 
 function toDomain(record: TeamRecord): TeamDetails {

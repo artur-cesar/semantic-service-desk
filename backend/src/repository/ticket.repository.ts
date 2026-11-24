@@ -33,11 +33,11 @@ export interface TicketRepository {
   list(options: ListTicketsOptions): Promise<TicketPage>
 }
 
-export function createTicketRepository(
-  prisma: AppPrismaClient,
-): TicketRepository {
-  async function confirm(id: string): Promise<ConfirmTicketResult> {
-    return prisma.$transaction(async (transaction) => {
+export class PrismaTicketRepository implements TicketRepository {
+  constructor(private readonly prisma: AppPrismaClient) {}
+
+  async confirm(id: string): Promise<ConfirmTicketResult> {
+    return this.prisma.$transaction(async (transaction) => {
       const update = await transaction.ticket.updateMany({
         data: {
           status: 'OPEN',
@@ -71,8 +71,8 @@ export function createTicketRepository(
     })
   }
 
-  async function create(data: CreateTicketData): Promise<Ticket> {
-    const record = await prisma.ticket.create({
+  async create(data: CreateTicketData): Promise<Ticket> {
+    const record = await this.prisma.ticket.create({
       data: {
         description: data.description,
         events: {
@@ -91,16 +91,16 @@ export function createTicketRepository(
     return Ticket.create(record)
   }
 
-  async function findById(id: string): Promise<null | Ticket> {
-    const record = await prisma.ticket.findUnique({ where: { id } })
+  async findById(id: string): Promise<null | Ticket> {
+    const record = await this.prisma.ticket.findUnique({ where: { id } })
 
     return record ? Ticket.create(record) : null
   }
 
-  async function list(options: ListTicketsOptions): Promise<TicketPage> {
-    const [totalItems, records] = await prisma.$transaction([
-      prisma.ticket.count(),
-      prisma.ticket.findMany({
+  async list(options: ListTicketsOptions): Promise<TicketPage> {
+    const [totalItems, records] = await this.prisma.$transaction([
+      this.prisma.ticket.count(),
+      this.prisma.ticket.findMany({
         orderBy: [
           { createdAt: options.createdAtOrder },
           { number: options.createdAtOrder },
@@ -115,6 +115,4 @@ export function createTicketRepository(
       totalItems,
     }
   }
-
-  return { confirm, create, findById, list }
 }

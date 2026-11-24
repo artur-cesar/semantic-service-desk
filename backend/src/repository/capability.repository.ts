@@ -21,11 +21,11 @@ type CapabilityRecord = Prisma.CapabilityGetPayload<{
   include: typeof capabilityInclude
 }>
 
-export function createCapabilityRepository(
-  prisma: AppPrismaClient,
-): CapabilityRepository {
-  async function findById(id: string): Promise<CapabilityDetails | null> {
-    const record = await prisma.capability.findFirst({
+export class PrismaCapabilityRepository implements CapabilityRepository {
+  constructor(private readonly prisma: AppPrismaClient) {}
+
+  async findById(id: string): Promise<CapabilityDetails | null> {
+    const record = await this.prisma.capability.findFirst({
       include: capabilityInclude,
       where: { active: true, id },
     })
@@ -33,8 +33,8 @@ export function createCapabilityRepository(
     return record ? toDomain(record) : null
   }
 
-  async function list(): Promise<CapabilityDetails[]> {
-    const records = await prisma.capability.findMany({
+  async list(): Promise<CapabilityDetails[]> {
+    const records = await this.prisma.capability.findMany({
       include: capabilityInclude,
       orderBy: { name: 'asc' },
       where: { active: true },
@@ -42,8 +42,6 @@ export function createCapabilityRepository(
 
     return records.map(toDomain)
   }
-
-  return { findById, list }
 }
 
 function toDomain(record: CapabilityRecord): CapabilityDetails {

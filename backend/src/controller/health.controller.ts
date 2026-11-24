@@ -3,15 +3,15 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import type { HealthResponse } from '../responses/health.response.js'
 import type { HealthService } from '../service/health.service.js'
 
-export type HealthController = ReturnType<typeof createHealthController>
+export class HealthController {
+  constructor(private readonly service: HealthService) {}
 
-export function createHealthController(service: HealthService) {
-  async function check(
+  check = async (
     request: FastifyRequest,
     reply: FastifyReply,
-  ): Promise<HealthResponse> {
+  ): Promise<HealthResponse> => {
     try {
-      await service.checkDatabase()
+      await this.service.checkDatabase()
 
       reply.code(200)
 
@@ -28,9 +28,5 @@ export function createHealthController(service: HealthService) {
         status: 'error',
       }
     }
-  }
-
-  return {
-    check,
   }
 }

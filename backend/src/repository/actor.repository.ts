@@ -38,11 +38,11 @@ export interface ActorRepository {
 
 type ActorRecord = Prisma.ActorGetPayload<{ include: typeof actorInclude }>
 
-export function createActorRepository(
-  prisma: AppPrismaClient,
-): ActorRepository {
-  async function findById(id: string): Promise<Actor | null> {
-    const record = await prisma.actor.findFirst({
+export class PrismaActorRepository implements ActorRepository {
+  constructor(private readonly prisma: AppPrismaClient) {}
+
+  async findById(id: string): Promise<Actor | null> {
+    const record = await this.prisma.actor.findFirst({
       include: actorInclude,
       where: { active: true, id },
     })
@@ -50,8 +50,8 @@ export function createActorRepository(
     return record ? toDomain(record) : null
   }
 
-  async function list(): Promise<Actor[]> {
-    const records = await prisma.actor.findMany({
+  async list(): Promise<Actor[]> {
+    const records = await this.prisma.actor.findMany({
       include: actorInclude,
       orderBy: { name: 'asc' },
       where: { active: true },
@@ -59,8 +59,6 @@ export function createActorRepository(
 
     return records.map(toDomain)
   }
-
-  return { findById, list }
 }
 
 function toDomain(record: ActorRecord): Actor {

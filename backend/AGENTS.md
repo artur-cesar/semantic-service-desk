@@ -12,10 +12,13 @@ Before adding or changing application features, read
 
 ## Dependency injection
 
-- Use manual, explicit dependency injection through factory functions.
+- Use manual, explicit constructor injection with concrete classes.
 - Build the dependency graph in `src/bootstrap/dependencies.ts`.
 - Do not introduce a dependency-injection container, decorators, reflection, providers, or service locators.
 - Pass constructed controllers to Fastify route plugins through plugin options.
+- Define controllers and services as classes. Do not add interfaces for them unless multiple implementations create a demonstrated need.
+- Define each repository contract as an interface and its Prisma-backed implementation as a `Prisma<Resource>Repository` class that explicitly implements the contract.
+- Keep controller handlers bound when passing them directly to Fastify; arrow-function class fields are the current project convention.
 - Prefer the dependency direction `route -> controller -> service -> repository -> infrastructure` when those layers are actually needed.
 - Do not create empty or speculative layers. Infrastructure routes such as health checks may use only a route and a controller.
 

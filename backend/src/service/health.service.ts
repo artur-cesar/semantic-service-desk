@@ -1,17 +1,9 @@
 import type { HealthRepository } from '../repository/health.repository.js'
 
-export interface HealthService {
-  checkDatabase(): Promise<void>
-}
+export class HealthService {
+  constructor(private readonly repository: HealthRepository) {}
 
-export function createHealthService(
-  repository: HealthRepository,
-): HealthService {
-  async function checkDatabase(): Promise<void> {
-    await repository.checkDatabase()
-  }
-
-  return {
-    checkDatabase,
+  async checkDatabase(): Promise<void> {
+    await this.repository.checkDatabase()
   }
 }

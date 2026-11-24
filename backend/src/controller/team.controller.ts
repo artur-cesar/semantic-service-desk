@@ -8,14 +8,14 @@ import type {
 } from '../responses/team.response.js'
 import type { TeamService } from '../service/team.service.js'
 
-export type TeamController = ReturnType<typeof createTeamController>
+export class TeamController {
+  constructor(private readonly service: TeamService) {}
 
-export function createTeamController(service: TeamService) {
-  async function findById(
+  findById = async (
     request: FastifyRequest<{ Params: TeamIdParameters }>,
     reply: FastifyReply,
-  ): Promise<TeamDetailsResponse | TeamNotFoundResponse> {
-    const details = await service.findById(request.params.id)
+  ): Promise<TeamDetailsResponse | TeamNotFoundResponse> => {
+    const details = await this.service.findById(request.params.id)
 
     if (!details) {
       return reply.code(404).send({ message: 'Team not found' })
@@ -45,8 +45,8 @@ export function createTeamController(service: TeamService) {
       name: team.name,
     }
   }
-  async function list(): Promise<TeamsResponse> {
-    const teamDetails = await service.list()
+  list = async (): Promise<TeamsResponse> => {
+    const teamDetails = await this.service.list()
 
     return {
       teams: teamDetails.map(({ members, team }) => ({
@@ -59,8 +59,6 @@ export function createTeamController(service: TeamService) {
       })),
     }
   }
-
-  return { findById, list }
 }
 
 function toDepartment(department: {

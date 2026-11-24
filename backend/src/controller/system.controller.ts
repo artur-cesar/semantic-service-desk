@@ -8,14 +8,14 @@ import type {
 } from '../responses/system.response.js'
 import type { SystemService } from '../service/system.service.js'
 
-export type SystemController = ReturnType<typeof createSystemController>
+export class SystemController {
+  constructor(private readonly service: SystemService) {}
 
-export function createSystemController(service: SystemService) {
-  async function findById(
+  findById = async (
     request: FastifyRequest<{ Params: SystemIdParameters }>,
     reply: FastifyReply,
-  ): Promise<SystemDetailsResponse | SystemNotFoundResponse> {
-    const details = await service.findById(request.params.id)
+  ): Promise<SystemDetailsResponse | SystemNotFoundResponse> => {
+    const details = await this.service.findById(request.params.id)
 
     if (!details) {
       return reply.code(404).send({ message: 'System not found' })
@@ -51,8 +51,8 @@ export function createSystemController(service: SystemService) {
     }
   }
 
-  async function list(): Promise<SystemsResponse> {
-    const systemDetails = await service.list()
+  list = async (): Promise<SystemsResponse> => {
+    const systemDetails = await this.service.list()
 
     return {
       systems: systemDetails.map(({ authorizedActors, system }) => ({
@@ -67,6 +67,4 @@ export function createSystemController(service: SystemService) {
       })),
     }
   }
-
-  return { findById, list }
 }

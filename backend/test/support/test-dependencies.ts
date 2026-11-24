@@ -7,21 +7,21 @@ import type { SystemRepository } from '../../src/repository/system.repository.js
 import type { TeamRepository } from '../../src/repository/team.repository.js'
 import type { TicketRepository } from '../../src/repository/ticket.repository.js'
 
-import { createActorController } from '../../src/controller/actor.controller.js'
-import { createCapabilityController } from '../../src/controller/capability.controller.js'
-import { createHealthController } from '../../src/controller/health.controller.js'
-import { createScenarioController } from '../../src/controller/scenario.controller.js'
-import { createSystemController } from '../../src/controller/system.controller.js'
-import { createTeamController } from '../../src/controller/team.controller.js'
-import { createTicketController } from '../../src/controller/ticket.controller.js'
+import { ActorController } from '../../src/controller/actor.controller.js'
+import { CapabilityController } from '../../src/controller/capability.controller.js'
+import { HealthController } from '../../src/controller/health.controller.js'
+import { ScenarioController } from '../../src/controller/scenario.controller.js'
+import { SystemController } from '../../src/controller/system.controller.js'
+import { TeamController } from '../../src/controller/team.controller.js'
+import { TicketController } from '../../src/controller/ticket.controller.js'
 import { Scenario } from '../../src/domain/scenario.domain.js'
-import { createActorService } from '../../src/service/actor.service.js'
-import { createCapabilityService } from '../../src/service/capability.service.js'
-import { createHealthService } from '../../src/service/health.service.js'
-import { createScenarioService } from '../../src/service/scenario.service.js'
-import { createSystemService } from '../../src/service/system.service.js'
-import { createTeamService } from '../../src/service/team.service.js'
-import { createTicketService } from '../../src/service/ticket.service.js'
+import { ActorService } from '../../src/service/actor.service.js'
+import { CapabilityService } from '../../src/service/capability.service.js'
+import { HealthService } from '../../src/service/health.service.js'
+import { ScenarioService } from '../../src/service/scenario.service.js'
+import { SystemService } from '../../src/service/system.service.js'
+import { TeamService } from '../../src/service/team.service.js'
+import { TicketService } from '../../src/service/ticket.service.js'
 
 interface TestDependenciesOptions {
   actorRepository?: ActorRepository
@@ -81,37 +81,37 @@ const defaultTicketRepository: TicketRepository = {
 export function createTestDependencies(
   options: TestDependenciesOptions = {},
 ): Dependencies {
-  const actorService = createActorService(
+  const actorService = new ActorService(
     options.actorRepository ?? defaultActorRepository,
   )
-  const capabilityService = createCapabilityService(
+  const capabilityService = new CapabilityService(
     options.capabilityRepository ?? defaultCapabilityRepository,
   )
-  const healthService = createHealthService(
+  const healthService = new HealthService(
     options.healthRepository ?? defaultHealthRepository,
   )
-  const scenarioService = createScenarioService(
+  const scenarioService = new ScenarioService(
     options.scenarioRepository ?? defaultScenarioRepository,
   )
-  const teamService = createTeamService(
+  const teamService = new TeamService(
     options.teamRepository ?? defaultTeamRepository,
   )
-  const systemService = createSystemService(
+  const systemService = new SystemService(
     options.systemRepository ?? defaultSystemRepository,
   )
-  const ticketService = createTicketService(
+  const ticketService = new TicketService(
     options.ticketRepository ?? defaultTicketRepository,
     options.actorRepository ?? defaultActorRepository,
   )
 
   return {
-    actorController: createActorController(actorService),
-    capabilityController: createCapabilityController(capabilityService),
+    actorController: new ActorController(actorService),
+    capabilityController: new CapabilityController(capabilityService),
     dispose: () => Promise.resolve(),
-    healthController: createHealthController(healthService),
-    scenarioController: createScenarioController(scenarioService),
-    systemController: createSystemController(systemService),
-    teamController: createTeamController(teamService),
-    ticketController: createTicketController(ticketService),
+    healthController: new HealthController(healthService),
+    scenarioController: new ScenarioController(scenarioService),
+    systemController: new SystemController(systemService),
+    teamController: new TeamController(teamService),
+    ticketController: new TicketController(ticketService),
   }
 }

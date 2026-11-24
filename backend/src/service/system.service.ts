@@ -1,16 +1,14 @@
 import type { SystemDetails } from '../domain/system-details.domain.js'
 import type { SystemRepository } from '../repository/system.repository.js'
 
-export interface SystemService {
-  findById(id: string): Promise<null | SystemDetails>
-  list(): Promise<SystemDetails[]>
-}
+export class SystemService {
+  constructor(private readonly repository: SystemRepository) {}
 
-export function createSystemService(
-  repository: SystemRepository,
-): SystemService {
-  return {
-    findById: (id) => repository.findById(id),
-    list: () => repository.list(),
+  findById(id: string): Promise<null | SystemDetails> {
+    return this.repository.findById(id)
+  }
+
+  list(): Promise<SystemDetails[]> {
+    return this.repository.list()
   }
 }
