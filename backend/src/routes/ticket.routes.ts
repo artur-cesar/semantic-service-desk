@@ -3,6 +3,7 @@ import type { FastifyPluginCallback } from 'fastify'
 import type { TicketController } from '../controller/ticket.controller.js'
 
 import {
+  confirmTicketRouteSchema,
   createTicketRouteSchema,
   ticketDetailsRouteSchema,
   ticketsRouteSchema,
@@ -18,6 +19,11 @@ export const ticketRoutes: FastifyPluginCallback<TicketRoutesOptions> = (
   done,
 ) => {
   app.post('/tickets', { schema: createTicketRouteSchema }, controller.create)
+  app.post(
+    '/tickets/:id/confirm',
+    { schema: confirmTicketRouteSchema },
+    controller.confirm,
+  )
   app.get('/tickets', { schema: ticketsRouteSchema }, controller.list)
   app.get(
     '/tickets/:id',

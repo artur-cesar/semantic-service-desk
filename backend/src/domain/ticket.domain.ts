@@ -28,6 +28,7 @@ export type TicketSource = 'AGENT' | 'API' | 'WEB'
 export type TicketStatus =
   | 'CANCELED'
   | 'CLOSED'
+  | 'DRAFT'
   | 'IN_PROGRESS'
   | 'OPEN'
   | 'RESOLVED'

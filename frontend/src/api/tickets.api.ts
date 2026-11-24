@@ -36,6 +36,7 @@ export interface TicketResponse {
   status:
     | 'CANCELED'
     | 'CLOSED'
+    | 'DRAFT'
     | 'IN_PROGRESS'
     | 'OPEN'
     | 'RESOLVED'

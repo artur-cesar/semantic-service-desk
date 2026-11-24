@@ -3,6 +3,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import type { Ticket } from '../domain/ticket.domain.js'
 import type {
   CreateTicketBody,
+  TicketConflictResponse,
   TicketIdParameters,
   TicketNotFoundResponse,
   TicketResponse,
@@ -14,6 +15,25 @@ import type { TicketService } from '../service/ticket.service.js'
 export type TicketController = ReturnType<typeof createTicketController>
 
 export function createTicketController(service: TicketService) {
+  async function confirm(
+    request: FastifyRequest<{ Params: TicketIdParameters }>,
+    reply: FastifyReply,
+  ): Promise<TicketConflictResponse | TicketNotFoundResponse | TicketResponse> {
+    const result = await service.confirm(request.params.id)
+
+    if (result.outcome === 'not_found') {
+      return reply.code(404).send({ message: 'Ticket not found' })
+    }
+
+    if (result.outcome === 'not_draft') {
+      return reply
+        .code(409)
+        .send({ message: 'Only draft tickets can be confirmed' })
+    }
+
+    return toResponse(result.ticket)
+  }
+
   async function create(
     request: FastifyRequest<{ Body: CreateTicketBody }>,
     reply: FastifyReply,
@@ -67,7 +87,7 @@ export function createTicketController(service: TicketService) {
     }
   }
 
-  return { create, findById, list }
+  return { confirm, create, findById, list }
 }
 
 function toResponse(ticket: Ticket): TicketResponse {

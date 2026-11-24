@@ -72,6 +72,7 @@ const defaultSystemRepository: SystemRepository = {
 }
 
 const defaultTicketRepository: TicketRepository = {
+  confirm: () => Promise.resolve({ outcome: 'not_found' }),
   create: () => Promise.reject(new Error('Unexpected ticket creation')),
   findById: () => Promise.resolve(null),
   list: () => Promise.resolve({ tickets: [], totalItems: 0 }),

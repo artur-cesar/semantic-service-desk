@@ -35,11 +35,36 @@ const ticket = Ticket.create({
   resolutionSummary: null,
   resolvedAt: null,
   source: 'API',
-  status: 'OPEN',
+  status: 'DRAFT',
   teamId: null,
   title: 'Cannot approve purchases after department change',
   updatedAt: now,
   version: 1,
+})
+
+const confirmedTicket = Ticket.create({
+  affectedSystemId: ticket.affectedSystemId,
+  assigneeId: ticket.assigneeId,
+  categoryId: ticket.categoryId,
+  closedAt: ticket.closedAt,
+  createdAt: ticket.createdAt,
+  description: ticket.description,
+  dueAt: ticket.dueAt,
+  id: ticket.id,
+  number: ticket.number,
+  previousDepartmentId: ticket.previousDepartmentId,
+  priority: ticket.priority,
+  requestedActionId: ticket.requestedActionId,
+  requesterDepartmentId: ticket.requesterDepartmentId,
+  requesterId: ticket.requesterId,
+  resolutionSummary: ticket.resolutionSummary,
+  resolvedAt: ticket.resolvedAt,
+  source: ticket.source,
+  status: 'OPEN',
+  teamId: ticket.teamId,
+  title: ticket.title,
+  updatedAt: ticket.updatedAt,
+  version: 2,
 })
 
 const requester = Actor.create({
@@ -69,9 +94,10 @@ const actorRepository: ActorRepository = {
   list: () => Promise.resolve([]),
 }
 
-void test('POST /tickets creates an open ticket', async (context) => {
+void test('POST /tickets creates a draft ticket', async (context) => {
   let creationData: CreateTicketData | undefined
   const repository: TicketRepository = {
+    confirm: () => Promise.resolve({ outcome: 'not_found' }),
     create: (data) => {
       creationData = data
       return Promise.resolve(ticket)
@@ -105,6 +131,7 @@ void test('POST /tickets creates an open ticket', async (context) => {
     title: ticket.title,
   })
   assert.equal(response.json<{ id: string }>().id, ticketId)
+  assert.equal(response.json<{ status: string }>().status, 'DRAFT')
 })
 
 void test('POST /tickets returns 404 for an unknown requester', async (context) => {
@@ -125,9 +152,69 @@ void test('POST /tickets returns 404 for an unknown requester', async (context) 
   assert.deepEqual(response.json(), { message: 'Requester not found' })
 })
 
+void test('POST /tickets/:id/confirm opens a draft ticket', async (context) => {
+  const repository: TicketRepository = {
+    confirm: () =>
+      Promise.resolve({ outcome: 'confirmed', ticket: confirmedTicket }),
+    create: () => Promise.resolve(ticket),
+    findById: () => Promise.resolve(null),
+    list: () => Promise.resolve({ tickets: [], totalItems: 0 }),
+  }
+  const app = await buildApp({
+    dependencies: createTestDependencies({ ticketRepository: repository }),
+  })
+  context.after(() => app.close())
+
+  const response = await app.inject({
+    method: 'POST',
+    url: `/tickets/${ticketId}/confirm`,
+  })
+
+  assert.equal(response.statusCode, 200)
+  assert.equal(response.json<{ status: string }>().status, 'OPEN')
+  assert.equal(response.json<{ version: number }>().version, 2)
+})
+
+void test('POST /tickets/:id/confirm rejects a ticket that is not a draft', async (context) => {
+  const repository: TicketRepository = {
+    confirm: () => Promise.resolve({ outcome: 'not_draft' }),
+    create: () => Promise.resolve(ticket),
+    findById: () => Promise.resolve(null),
+    list: () => Promise.resolve({ tickets: [], totalItems: 0 }),
+  }
+  const app = await buildApp({
+    dependencies: createTestDependencies({ ticketRepository: repository }),
+  })
+  context.after(() => app.close())
+
+  const response = await app.inject({
+    method: 'POST',
+    url: `/tickets/${ticketId}/confirm`,
+  })
+
+  assert.equal(response.statusCode, 409)
+  assert.deepEqual(response.json(), {
+    message: 'Only draft tickets can be confirmed',
+  })
+})
+
+void test('POST /tickets/:id/confirm returns 404 for an unknown ticket', async (context) => {
+  const app = await buildApp({ dependencies: createTestDependencies() })
+  context.after(() => app.close())
+
+  const response = await app.inject({
+    method: 'POST',
+    url: `/tickets/${ticketId}/confirm`,
+  })
+
+  assert.equal(response.statusCode, 404)
+  assert.deepEqual(response.json(), { message: 'Ticket not found' })
+})
+
 void test('GET /tickets returns the most recent tickets by default', async (context) => {
   let listOptions: Parameters<TicketRepository['list']>[0] | undefined
   const repository: TicketRepository = {
+    confirm: () => Promise.resolve({ outcome: 'not_found' }),
     create: () => Promise.resolve(ticket),
     findById: () => Promise.resolve(null),
     list: (options) => {
@@ -173,6 +260,7 @@ void test('GET /tickets returns the most recent tickets by default', async (cont
 void test('GET /tickets accepts pagination and ascending date order', async (context) => {
   let listOptions: Parameters<TicketRepository['list']>[0] | undefined
   const repository: TicketRepository = {
+    confirm: () => Promise.resolve({ outcome: 'not_found' }),
     create: () => Promise.resolve(ticket),
     findById: () => Promise.resolve(null),
     list: (options) => {
@@ -211,6 +299,7 @@ void test('GET /tickets accepts pagination and ascending date order', async (con
 
 void test('GET /tickets/:id returns a ticket', async (context) => {
   const repository: TicketRepository = {
+    confirm: () => Promise.resolve({ outcome: 'not_found' }),
     create: () => Promise.resolve(ticket),
     findById: (id) => Promise.resolve(id === ticketId ? ticket : null),
     list: () => Promise.resolve({ tickets: [], totalItems: 0 }),
@@ -244,7 +333,7 @@ void test('GET /tickets/:id returns a ticket', async (context) => {
     resolutionSummary: null,
     resolvedAt: null,
     source: 'API',
-    status: 'OPEN',
+    status: 'DRAFT',
     teamId: null,
     title: ticket.title,
     updatedAt: now.toISOString(),

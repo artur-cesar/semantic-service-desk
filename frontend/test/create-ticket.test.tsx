@@ -45,7 +45,7 @@ const ticketResponse = {
   resolutionSummary: null,
   resolvedAt: null,
   source: 'API',
-  status: 'OPEN',
+  status: 'DRAFT',
   teamId: null,
   title: 'Cannot approve purchases',
   updatedAt: '2026-01-01T00:00:00.000Z',

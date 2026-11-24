@@ -1,6 +1,7 @@
 import type { Ticket, TicketPriority } from '../domain/ticket.domain.js'
 import type { ActorRepository } from '../repository/actor.repository.js'
 import type {
+  ConfirmTicketResult,
   ListTicketsOptions,
   TicketPage,
   TicketRepository,
@@ -14,6 +15,7 @@ export interface CreateTicketInput {
 }
 
 export interface TicketService {
+  confirm(id: string): Promise<ConfirmTicketResult>
   create(input: CreateTicketInput): Promise<null | Ticket>
   findById(id: string): Promise<null | Ticket>
   list(options: ListTicketsOptions): Promise<TicketPage>
@@ -24,6 +26,7 @@ export function createTicketService(
   actorRepository: ActorRepository,
 ): TicketService {
   return {
+    confirm: (id) => ticketRepository.confirm(id),
     async create(input) {
       const requester = await actorRepository.findById(input.requesterId)
 

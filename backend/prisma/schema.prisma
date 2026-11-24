@@ -16,6 +16,7 @@ enum ActorType {
 }
 
 enum TicketStatus {
+  DRAFT
   OPEN
   TRIAGED
   IN_PROGRESS
@@ -272,7 +273,7 @@ model Ticket {
   number                Int            @unique @default(autoincrement())
   title                 String
   description           String
-  status                TicketStatus   @default(OPEN)
+  status                TicketStatus   @default(DRAFT)
   priority              TicketPriority @default(MEDIUM)
   source                TicketSource   @default(API)
   requesterId           String         @map("requester_id") @db.Uuid

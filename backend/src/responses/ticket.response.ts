@@ -17,6 +17,7 @@ const ticketPrioritySchema = Type.Union([
 ])
 
 const ticketStatusSchema = Type.Union([
+  Type.Literal('DRAFT'),
   Type.Literal('OPEN'),
   Type.Literal('TRIAGED'),
   Type.Literal('IN_PROGRESS'),
@@ -109,6 +110,11 @@ export const ticketNotFoundResponseSchema = Type.Object(
   { $id: 'TicketNotFoundResponse', additionalProperties: false },
 )
 
+export const ticketConflictResponseSchema = Type.Object(
+  { message: Type.String() },
+  { $id: 'TicketConflictResponse', additionalProperties: false },
+)
+
 export const ticketsRouteSchema = {
   querystring: ticketsQuerySchema,
   response: { 200: ticketsResponseSchema },
@@ -122,6 +128,15 @@ export const ticketDetailsRouteSchema = {
   },
 } as const
 
+export const confirmTicketRouteSchema = {
+  params: ticketIdParametersSchema,
+  response: {
+    200: ticketResponseSchema,
+    404: ticketNotFoundResponseSchema,
+    409: ticketConflictResponseSchema,
+  },
+} as const
+
 export const createTicketRouteSchema = {
   body: createTicketBodySchema,
   response: {
@@ -131,6 +146,7 @@ export const createTicketRouteSchema = {
 } as const
 
 export type CreateTicketBody = Static<typeof createTicketBodySchema>
+export type TicketConflictResponse = Static<typeof ticketConflictResponseSchema>
 export type TicketIdParameters = Static<typeof ticketIdParametersSchema>
 export type TicketNotFoundResponse = Static<typeof ticketNotFoundResponseSchema>
 export type TicketResponse = Static<typeof ticketResponseSchema>
