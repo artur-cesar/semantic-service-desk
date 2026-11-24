@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { AppLayout } from './components/app-layout.js'
 import { ActorProfilePage } from './pages/actor-profile.page.js'
 import { ActorsPage } from './pages/actors.page.js'
+import { AnalysisPage } from './pages/analysis.page.js'
 import { CapabilitiesPage } from './pages/capabilities.page.js'
 import { CapabilityProfilePage } from './pages/capability-profile.page.js'
 import { CreateTicketPage } from './pages/create-ticket.page.js'
@@ -32,6 +33,7 @@ export function App() {
           <Route element={<AppLayout />}>
             <Route element={<HomePage />} index />
             <Route element={<ScenarioPage />} path="/scenario" />
+            <Route element={<AnalysisPage />} path="/analysis" />
             <Route element={<CreateTicketPage />} path="/tickets/new" />
             <Route element={<SystemsPage />} path="/systems" />
             <Route element={<SystemProfilePage />} path="/system/:id/profile" />

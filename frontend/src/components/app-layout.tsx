@@ -25,9 +25,9 @@ export function AppLayout() {
             <NavLink className={navLinkClassName} to="/tickets/new">
               Create ticket
             </NavLink>
-            <span aria-disabled="true" className="nav-link disabled px-2">
+            <NavLink className={navLinkClassName} to="/analysis">
               Analysis
-            </span>
+            </NavLink>
             <span aria-disabled="true" className="nav-link disabled px-2">
               Knowledge graph
             </span>

@@ -1,10 +1,16 @@
-import { postJson } from './api-client.js'
+import { getJson, postJson } from './api-client.js'
 
 export interface CreateTicketRequest {
   description: string
   priority: TicketPriority
   requesterId: string
   title: string
+}
+
+export interface GetTicketsParameters {
+  createdAtOrder: 'asc' | 'desc'
+  page: number
+  pageSize: number
 }
 
 export type TicketPriority = 'CRITICAL' | 'HIGH' | 'LOW' | 'MEDIUM'
@@ -41,8 +47,32 @@ export interface TicketResponse {
   version: number
 }
 
+export interface TicketsResponse {
+  pagination: {
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+    page: number
+    pageSize: number
+    totalItems: number
+    totalPages: number
+  }
+  tickets: TicketResponse[]
+}
+
 export function createTicket(
   request: CreateTicketRequest,
 ): Promise<TicketResponse> {
   return postJson<TicketResponse, CreateTicketRequest>('/tickets', request)
+}
+
+export function getTickets(
+  parameters: GetTicketsParameters,
+): Promise<TicketsResponse> {
+  const query = new URLSearchParams({
+    createdAtOrder: parameters.createdAtOrder,
+    page: String(parameters.page),
+    pageSize: String(parameters.pageSize),
+  })
+
+  return getJson<TicketsResponse>(`/tickets?${query.toString()}`)
 }
